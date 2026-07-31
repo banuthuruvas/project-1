@@ -1,0 +1,32 @@
+{
+  "taskId": "0001",
+  "slug": "introduce-template-versioning",
+  "title": "Introduce template release versioning system",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": false,
+  "minTemplateVersion": null,
+  "templateVersionAfterApply": "2026.04.13.1",
+  "dependsOn": [],
+  "supersedes": null,
+  "summary": "Adds the formal template release contract: .nie-template-version.json, CHANGELOG.md, docs/template-releases/ index + per-version manifests, and the validation tool under tools/template-versioning/.",
+  "appliesIf": {
+    "noneFileExist": [".nie-template-version.json"]
+  },
+  "filesDeleted": [],
+  "filesEdited": [],
+  "filesCreated": [
+    ".nie-template-version.json",
+    "CHANGELOG.md",
+    "docs/template-releases/index.json",
+    "docs/template-releases/2026.04.13.1.json",
+    "docs/template-releases/2026.04.13.1.md",
+    "tools/template-versioning/Program.cs",
+    "tools/template-versioning/TemplateVersioning.csproj",
+    ".husky/pre-commit"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet run --project tools/template-versioning/TemplateVersioning.csproj -- validate --head", "expectExit": 0 }
+  ],
+  "docs": [".ai/common/09-template-versioning.md"]
+}

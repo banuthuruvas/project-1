@@ -1,0 +1,38 @@
+{
+  "taskId": "0012",
+  "slug": "add-pdf-generation-feature",
+  "title": "Add PDF Generation feature (Playwright HTML→PDF + Reports endpoint)",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": false,
+  "status": "scaffolded",
+  "minTemplateVersion": "2026.04.28.2",
+  "templateVersionAfterApply": "2026.05.03.1",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "summary": "Adds an opt-in PDF generation pipeline: IPdfGenerationService + PlaywrightPdfGenerationService for HTML→PDF rendering, ReportController for report-type catalog and download, plus a frontend reportService client. Skip in derived repos that have no print/PDF output requirement.",
+  "appliesIf": {
+    "noneFileExist": [
+      "src/backend/Libraries/Services/Services/PdfGeneration/IPdfGenerationService.cs",
+      "src/frontend/main/src/services/reportService.ts"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register IPdfGenerationService in DI" },
+    { "path": "build/Dockerfile.api", "reason": "Install Playwright Chromium dependencies in the API image" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Services/Services/PdfGeneration/IPdfGenerationService.cs",
+    "src/backend/Libraries/Services/Services/PdfGeneration/PlaywrightPdfGenerationService.cs",
+    "src/backend/API/Controllers/ReportController.cs",
+    "src/backend/Libraries/Domain/Dto/Report/ReportRequestDto.cs",
+    "src/frontend/main/src/services/reportService.ts"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 },
+    { "type": "grep", "pattern": "IPdfGenerationService", "paths": ["src/backend/API/Program.cs"], "expectMatchesAtLeast": 1 }
+  ],
+  "docs": [".ai/features/pdf-generation/README.md"]
+}

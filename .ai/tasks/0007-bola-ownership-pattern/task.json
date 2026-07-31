@@ -1,0 +1,35 @@
+{
+  "taskId": "0007",
+  "slug": "bola-ownership-pattern",
+  "title": "Standardize per-record ownership (BOLA) via IOwnedEntity + auth filter",
+  "type": "security",
+  "breaking": false,
+  "runOnClone": false,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.2",
+  "status": "released",
+  "note": "Pattern is shipped (IOwnedEntity, RequireOwnershipAttribute, OwnedEntityActionFilter, BaseController.EnsureOwnedAsync). No existing template entity adopts it yet — adoption is per-feature, decided by the consuming project.",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "status": "scaffolded",
+  "summary": "Adds an IOwnedEntity marker interface ({ string OwnerUserId }) and an OwnedEntityActionFilter that enforces request user == record owner on Get/Edit/Delete unless the user has an admin access function. Provides a base controller helper EnsureOwnedAsync<T>(id) for non-attribute paths.",
+  "owaspMapping": ["API1"],
+  "appliesIf": {
+    "noneFileExist": ["src/backend/Libraries/Domain/Models/IOwnedEntity.cs"]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Controllers/BaseController.cs", "reason": "Add EnsureOwnedAsync<T>(id) helper that resolves the entity, compares OwnerUserId to UserId, returns 403 if mismatch and current user is not admin" },
+    { "path": "src/backend/Libraries/Services/Services/BaseService.cs", "reason": "Optional: filter list queries to current user's records when the entity implements IOwnedEntity (admin sees all)" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Domain/Models/IOwnedEntity.cs",
+    "src/backend/API/Authorization/OwnedEntityActionFilter.cs",
+    ".ai/common/04-do-and-dont.md.update.md"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "IOwnedEntity", "paths": ["src/backend/Libraries/Domain/Models/", "src/backend/API/"], "expectMinMatches": 2 }
+  ],
+  "docs": [".ai/common/08-security-owasp-top10-2025.md"]
+}

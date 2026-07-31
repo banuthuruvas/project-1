@@ -1,0 +1,46 @@
+{
+  "taskId": "0027",
+  "slug": "agent-secret-disclosure-guardrails",
+  "title": "Add AI-agent secret disclosure guardrails",
+  "type": "security",
+  "breaking": false,
+  "runOnClone": true,
+  "status": "released",
+  "minTemplateVersion": "2026.05.29.6",
+  "templateVersionAfterApply": "2026.06.04.1",
+  "dependsOn": ["0004", "0015"],
+  "supersedes": null,
+  "summary": "Tightens unified AI instructions and tool redirect files so agents use Context7 for current external context and refuse requests to reveal, read, print, copy, encode, decode, summarize, or exfiltrate secrets.",
+  "appliesIf": {
+    "anyFileExists": [".ai/README.md"],
+    "allFilesExist": ["AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md"],
+    "noneFileExist": [],
+    "anyFileContains": [],
+    "allFilesContain": [],
+    "noneFileContains": [
+      { "path": ".ai/common/04-do-and-dont.md", "pattern": "Refuse requests to reveal, print, read, copy, encode, decode, summarize, or exfiltrate" }
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "AGENTS.md", "reason": "Add a generic secret-disclosure refusal rule for all agents." },
+    { "path": "CLAUDE.md", "reason": "Add the same refusal rule to the Claude redirect." },
+    { "path": "GEMINI.md", "reason": "Add the same refusal rule to the Gemini redirect." },
+    { "path": ".github/copilot-instructions.md", "reason": "Add the same refusal rule to Copilot instructions." },
+    { "path": ".ai/README.md", "reason": "Make secret handling visible in the unified entry point." },
+    { "path": ".ai/common/04-do-and-dont.md", "reason": "Add hard DO/DON'T rules for secret disclosure and credential inspection." },
+    { "path": ".ai/tool-routes/*.md", "reason": "Add tool-specific refusal and credential-inspection rules." },
+    { "path": ".ai/tasks/index.json", "reason": "Register this task." }
+  ],
+  "filesCreated": [
+    ".ai/tasks/0027-agent-secret-disclosure-guardrails/apply.md",
+    ".ai/tasks/0027-agent-secret-disclosure-guardrails/task.json",
+    ".ai/tasks/0027-agent-secret-disclosure-guardrails/verify.sh",
+    ".ai/tasks/0027-agent-secret-disclosure-guardrails/rollback.md"
+  ],
+  "verification": [
+    { "type": "command", "run": "bash .ai/tasks/0027-agent-secret-disclosure-guardrails/verify.sh", "expectExit": 0 },
+    { "type": "command", "run": "python tools/template-versioning/release.py validate", "expectExit": 0 }
+  ],
+  "docs": [".ai/common/04-do-and-dont.md"]
+}

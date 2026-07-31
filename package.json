@@ -1,0 +1,25 @@
+{
+  "name": "nietemplate-root",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "validate:template-version": "python tools/template-versioning/release.py validate",
+    "audit:template": "python tools/template-audit/audit.py --repo .",
+    "align:template": "python tools/template-align/align.py"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0"
+  },
+  "lint-staged": {
+    "src/frontend/**/*.{ts,vue}": [
+      "prettier --write"
+    ],
+    "src/frontend/**/*.{css,json,md}": [
+      "prettier --write"
+    ],
+    "src/backend/**/*.cs": [
+      "dotnet format --include"
+    ]
+  }
+}

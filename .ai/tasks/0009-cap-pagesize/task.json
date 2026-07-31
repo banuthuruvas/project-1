@@ -1,0 +1,32 @@
+{
+  "taskId": "0009",
+  "slug": "cap-pagesize",
+  "title": "Enforce max PageSize=100 in shared search base",
+  "type": "security",
+  "breaking": false,
+  "runOnClone": true,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.2",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "status": "released",
+  "summary": "Adds PagedSearchDto base class with PageSize automatically clamped to [1, 100]. Migrates PurchaseOrderSearchDto and any other search DTO to extend it. Closes API4 (Unrestricted Resource Consumption) at the controller boundary.",
+  "owaspMapping": ["API4"],
+  "dotnetMapping": ["N-17"],
+  "appliesIf": {
+    "noneFileExist": ["src/backend/Libraries/Domain/Dto/PagedSearchDto.cs"]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/Libraries/Domain/Dto/PurchaseOrderDto.cs", "reason": "PurchaseOrderSearchDto extends PagedSearchDto" },
+    { "path": "src/backend/Libraries/Services/Services/PurchaseOrder/PurchaseOrderService.cs", "reason": "Skip/Take uses the clamped PageSize from the DTO" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Domain/Dto/PagedSearchDto.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "PagedSearchDto", "paths": ["src/backend/Libraries/Domain/Dto/", "src/backend/Libraries/Services/Services/"], "expectMinMatches": 2 }
+  ],
+  "docs": [".ai/common/08-security-owasp-top10-2025.md", ".ai/common/07-best-practices-dotnet.md"]
+}

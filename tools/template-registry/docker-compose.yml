@@ -1,0 +1,34 @@
+# Self-host the NIE Template Fleet Registry.
+#
+#   docker compose up -d        # bring up
+#   docker compose logs -f      # tail
+#   docker compose down         # stop
+#
+# Sets REGISTRY_TOKEN by default; switch to JWT mode by setting
+# REGISTRY_JWT_SECRET instead (or in addition). Behind a real load balancer
+# you should also terminate TLS in front; this compose file leaves it HTTP
+# inside the docker network only.
+services:
+  registry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nie-template-registry:v2
+    container_name: nie-template-registry
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"   # localhost-only by default; expose via reverse proxy
+    environment:
+      # One of these MUST be set in any non-pilot deployment.
+      REGISTRY_TOKEN: ${REGISTRY_TOKEN:-}
+      REGISTRY_JWT_SECRET: ${REGISTRY_JWT_SECRET:-}
+    volumes:
+      - registry-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz',timeout=2).status==200 else 1)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  registry-data:

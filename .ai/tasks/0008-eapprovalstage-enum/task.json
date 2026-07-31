@@ -1,0 +1,39 @@
+{
+  "taskId": "0008",
+  "slug": "eapprovalstage-enum",
+  "title": "Replace hardcoded ApprovalStage strings with EApprovalStage enum (BE+FE)",
+  "type": "refactor",
+  "breaking": false,
+  "runOnClone": false,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.2",
+  "status": "released",
+  "dependsOn": ["0002"],
+  "supersedes": null,
+  "status": "scaffolded",
+  "summary": "Procurement currently stores ApprovalStage as raw strings ('Manager', 'Finance', 'Procurement'). This violates the enum-first rule. Adds EApprovalStage to Domain.Enum + a TypeScript mirror in src/frontend/main/src/types/procurement.ts, migrates the column to use enum.ToString(), and replaces every string literal in PurchaseOrderController and tests.",
+  "dotnetMapping": ["N-19"],
+  "appliesIf": {
+    "anyFileExists": ["src/backend/Libraries/Domain/Models/PurchaseOrderApproval.cs"]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/Libraries/Domain/Models/PurchaseOrderApproval.cs", "reason": "Change ApprovalStage from string to EApprovalStage" },
+    { "path": "src/backend/Libraries/Domain/Dto/PurchaseOrderDto.cs", "reason": "PurchaseOrderApprovalDto.ApprovalStage → EApprovalStage" },
+    { "path": "src/backend/API/Controllers/PurchaseOrderController.cs", "reason": "Submit() approval-chain seed uses EApprovalStage.Manager / Finance / Procurement; ProcessApproval switch uses enum cases" },
+    { "path": "src/backend/Libraries/Services/Services/PurchaseOrder/PurchaseOrderService.cs", "reason": "Any string lookups updated to enum" },
+    { "path": "src/frontend/main/src/services/purchaseOrderService.ts", "reason": "TypeScript types reference EApprovalStage mirror" },
+    { "path": "src/frontend/main/src/staff/pages/staff/ApprovalQueue.vue", "reason": "Stage labels use the enum + helper formatter" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Domain/Enum/EApprovalStage.cs",
+    "src/frontend/main/src/types/procurement.ts",
+    "src/backend/Libraries/Data/Migrations/<timestamp>_PurchaseOrderApprovalStageEnum.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "\"Manager\"|\"Finance\"|\"Procurement\"", "paths": ["src/backend/API/Controllers/PurchaseOrderController.cs", "src/backend/Libraries/Services/Services/PurchaseOrder/", "src/frontend/main/src/staff/pages/staff/ApprovalQueue.vue"], "expectMatches": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 }
+  ],
+  "docs": [".ai/common/04-do-and-dont.md", ".ai/common/07-best-practices-dotnet.md"]
+}

@@ -1,0 +1,38 @@
+{
+  "taskId": "0006",
+  "slug": "ssrf-outbound-allowlist",
+  "title": "Allowlist outbound HTTP for MyInfo + Portal SSO",
+  "type": "security",
+  "breaking": false,
+  "runOnClone": false,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.2",
+  "status": "released-partial",
+  "note": "MyInfoService wired with SsrfGuard at constructor (validates discovery URL against allowlist). PortalSsoService integration deferred to a future task — SsrfGuard helper is shipped and ready.",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "status": "scaffolded",
+  "summary": "Hardens outbound HTTP from MyInfoService and PortalSsoService against SSRF: validates configured base URLs against a per-service allowlist before any request, throws on mismatch. Adds SsrfGuard helper and unit tests.",
+  "owaspMapping": ["W-A10", "API7"],
+  "appliesIf": {
+    "anyFileExists": [
+      "src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs",
+      "src/backend/Auth/Services/PortalSsoService.cs"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs", "reason": "Validate base URL against MyInfoSettings.AllowedBaseUrls before each call" },
+    { "path": "src/backend/Auth/Services/PortalSsoService.cs", "reason": "Validate IDP / portal URLs against PortalSsoOptions.AllowedHosts before each call" },
+    { "path": "src/backend/Libraries/Shared/Models/EmailSettings.cs", "reason": "Reference: also add allowed SMTP host pattern (optional follow-on)" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Shared/Helpers/SsrfGuard.cs",
+    "tests/specs/api/ssrf-guard.spec.ts"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "SsrfGuard\\.Validate", "paths": ["src/backend/Libraries/Services/Services/MyInfo/", "src/backend/Auth/Services/"], "expectMinMatches": 2 }
+  ],
+  "docs": [".ai/common/08-security-owasp-top10-2025.md", ".ai/features/singpass-myinfo/customize.md", ".ai/features/authentication/customize.md"]
+}

@@ -1,0 +1,14 @@
+{
+  "templateName": "NIE Template",
+  "templateVersion": "2026.06.04.1",
+  "releasedAtSgt": "2026-06-04T07:09:02+08:00",
+  "timezone": "Asia/Singapore",
+  "releaseType": "security",
+  "breaking": false,
+  "sourceCommit": "8a7724f74157195fd87192a5d06beed805a6e8a4",
+  "sourceTemplateRepo": "https://niegithub.nie.edu.sg/NIE/nie-template",
+  "releaseNotesPath": "docs/template-releases/2026.06.04.1.md",
+  "sourceReleaseNotes": "docs/template-releases/2026.05.29.6.md",
+  "adoptedAtSgt": null,
+  "localNotes": []
+}

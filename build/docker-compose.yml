@@ -1,0 +1,84 @@
+name: nietemplate
+
+services:
+  nietemplate-ui:
+    image: ${DOCKER_REGISTRY_URL}/nietemplate-ui:${COMMIT_ID}
+    container_name: nietemplate-ui
+    restart: always
+    ports:
+      - "8102:80"
+    networks:
+      - nietemplate-network
+    depends_on:
+      - nietemplate-auth-service
+      - nietemplate-api-service
+
+  nietemplate-auth-service:
+    image: ${DOCKER_REGISTRY_URL}/nietemplate-auth-api:${COMMIT_ID}
+    container_name: nietemplate-auth-service
+    restart: always
+    volumes:
+      - ./appsettings.auth.json:/app/appsettings.json:ro
+    networks:
+      - nietemplate-network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=production
+      - HTTPS_PROXY=${PROXY_VALUE:-}
+      - HTTP_PROXY=${PROXY_VALUE:-}
+      - NO_PROXY=${NO_PROXY_VALUE:-}
+      - https_proxy=${PROXY_VALUE:-}
+      - http_proxy=${PROXY_VALUE:-}
+      - no_proxy=${NO_PROXY_VALUE:-}
+    depends_on:
+      - nietemplate-valkey
+
+  nietemplate-api-service:
+    image: ${DOCKER_REGISTRY_URL}/nietemplate-main-api:${COMMIT_ID}
+    container_name: nietemplate-api-service
+    restart: always
+    volumes:
+      - ./appsettings.api.json:/app/appsettings.json:ro
+      - ./uploads:/app/files
+    environment:
+      - ASPNETCORE_ENVIRONMENT=production
+    networks:
+      - nietemplate-network
+    depends_on:
+      - nietemplate-postgres
+      - nietemplate-valkey
+
+  nietemplate-valkey:
+    image: dhi.io/valkey:9.0.3-debian13
+    container_name: nietemplate-valkey
+    restart: always
+    networks:
+      - nietemplate-network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nietemplate-postgres:
+    image: dhi.io/postgres:18.3-alpine3.22
+    container_name: nietemplate-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: "NieTemplate"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    networks:
+      - nietemplate-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d NieTemplate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  nietemplate-network:
+    driver: bridge

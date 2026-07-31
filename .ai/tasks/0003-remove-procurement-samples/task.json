@@ -1,0 +1,71 @@
+{
+  "taskId": "0003",
+  "slug": "remove-procurement-samples",
+  "title": "Remove Procurement reference samples (run AFTER your real entities exist)",
+  "type": "cleanup",
+  "breaking": true,
+  "runOnClone": false,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.1",
+  "dependsOn": ["0002"],
+  "supersedes": null,
+  "summary": "Procurement (Vendor / CatalogItem / PurchaseOrder + workflow) ships as a reference sample so derived projects can study a working CRUD + audit + approval + file-attachment pattern. Once your project has its own real entities, run this task to scrub procurement entirely. Includes a drop migration.",
+  "appliesIf": {
+    "anyFileExists": [
+      "src/backend/Libraries/Domain/Models/PurchaseOrder.cs",
+      "src/backend/Libraries/Domain/Models/Vendor.cs"
+    ]
+  },
+  "filesDeleted": [
+    "src/backend/API/Controllers/CatalogItemController.cs",
+    "src/backend/API/Controllers/VendorController.cs",
+    "src/backend/API/Controllers/PurchaseOrderController.cs",
+    "src/backend/Libraries/Domain/Models/CatalogItem.cs",
+    "src/backend/Libraries/Domain/Models/Vendor.cs",
+    "src/backend/Libraries/Domain/Models/PurchaseOrder.cs",
+    "src/backend/Libraries/Domain/Models/PurchaseOrderLine.cs",
+    "src/backend/Libraries/Domain/Models/PurchaseOrderApproval.cs",
+    "src/backend/Libraries/Domain/Models/PurchaseOrderDocument.cs",
+    "src/backend/Libraries/Domain/Dto/CatalogItemDto.cs",
+    "src/backend/Libraries/Domain/Dto/VendorDto.cs",
+    "src/backend/Libraries/Domain/Dto/PurchaseOrderDto.cs",
+    "src/backend/Libraries/Domain/Enum/EPurchaseOrderStatus.cs",
+    "src/backend/Libraries/Services/Services/CatalogItem/",
+    "src/backend/Libraries/Services/Services/Vendor/",
+    "src/backend/Libraries/Services/Services/PurchaseOrder/",
+    "src/backend/Libraries/Services/Services/PurchaseOrderDocument/",
+    "src/frontend/main/src/staff/pages/staff/ProcurementDashboard.vue",
+    "src/frontend/main/src/staff/pages/staff/NewPurchaseRequest.vue",
+    "src/frontend/main/src/staff/pages/staff/PurchaseOrderDetail.vue",
+    "src/frontend/main/src/staff/pages/staff/OrderHistory.vue",
+    "src/frontend/main/src/staff/pages/staff/ApprovalQueue.vue",
+    "src/frontend/main/src/staff/pages/staff/CatalogItems.vue",
+    "src/frontend/main/src/staff/pages/staff/VendorManagement.vue",
+    "src/frontend/main/src/services/purchaseOrderService.ts",
+    "src/frontend/main/src/services/catalogItemService.ts",
+    "src/frontend/main/src/services/vendorService.ts"
+  ],
+  "filesEdited": [
+    { "path": "src/backend/Libraries/Data/Data/NieTemplateDbContext.cs", "reason": "Drop procurement DbSets + relationship configs + procurement Code seed rows" },
+    { "path": "src/backend/API/Program.cs", "reason": "Drop procurement using statements + 4 service DI registrations" },
+    { "path": "src/backend/API/Mapping/MappingProfile.cs", "reason": "Drop Vendor / CatalogItem / PurchaseOrder mappings" },
+    { "path": "src/backend/API/Extensions/DatabaseSeeder.cs", "reason": "Drop SeedVendorsAsync / SeedCatalogItemsAsync / SeedPurchaseOrdersAsync + their calls; drop procurement Code rows from SeedCodesAsync" },
+    { "path": "src/backend/Libraries/Domain/Security/AccessFunctionCatalog.cs", "reason": "Drop all 7 Procurement* access function constants + definitions + role bundles" },
+    { "path": "src/backend/Libraries/Domain/Enum/ECodeType.cs", "reason": "Drop VENDOR_CATEGORY / CATALOG_CATEGORY / UNIT_OF_MEASURE / DELIVERY_LOCATION / CURRENCY values (review — keep if your project still needs them)" },
+    { "path": "src/backend/Libraries/Domain/Enum/ECodeName.cs", "reason": "Drop procurement Name values" },
+    { "path": "src/frontend/main/src/router/index.ts", "reason": "Drop procurement routes; replace dashboard import with your project's Dashboard component" },
+    { "path": "src/frontend/main/src/staff/layouts/StaffLayout.vue", "reason": "Replace procurement.${routeName} feedback function id with a generic project namespace" },
+    { "path": "src/frontend/main/src/composables/usePermissions.ts", "reason": "Drop procurement nav items and procurement role labels" },
+    { "path": "src/frontend/main/src/constants/permissions.ts", "reason": "Drop Procurement* + VendorManage / CatalogManage + procurement entries in LEGACY_ROLE_PERMISSIONS / ACCESS_FUNCTION_PERMISSION_MAP" },
+    { "path": "tests/specs/fixtures/test-config.ts", "reason": "Drop vendor / purchaseOrder endpoint blocks and procurement routes" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Data/Migrations/<timestamp>_RemoveProcurementSamples.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "Procurement|PurchaseOrder|CatalogItem|Vendor", "paths": ["src/backend/", "src/frontend/main/src/"], "expectMatches": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 }
+  ],
+  "docs": [".ai/features/_samples/procurement/remove.md"]
+}

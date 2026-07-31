@@ -1,0 +1,161 @@
+pipeline {
+    agent any
+    triggers { githubPush() }
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    environment {
+        // ── Customise these per project ──────────────────────────────
+        APP_NAME        = "nietemplate"          // Docker image prefix
+        BUILD_ENV       = "staging"              // staging | production
+        DOCKER_REGISTRY = "10.240.229.41"        // Registry IP
+        HTTPS_PROXY     = "http://10.240.229.233:3128"
+        GIT_REPO_URL    = "https://niegithub.nie.edu.sg/NIE/nie-template.git"
+        GIT_BRANCH      = "*/main"
+        GIT_CREDENTIAL  = "aygit-classic"        // Jenkins credential ID
+    }
+
+    stages {
+        // ── 1  Clone ─────────────────────────────────────────────────
+        stage('Git clone') {
+            steps {
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: env.GIT_BRANCH]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'CloneOption',
+                             depth: 1,
+                             shallow: true,
+                             noTags: true,
+                             reference: '',
+                             honorRefspec: false]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                            url: env.GIT_REPO_URL,
+                            credentialsId: env.GIT_CREDENTIAL
+                        ]]
+                    ])
+                    env.SHORT_COMMIT_ID = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    echo "Checked out commit: ${SHORT_COMMIT_ID}"
+                }
+            }
+        }
+
+        // ── 2  Build & Push Docker images ────────────────────────────
+        // Validate template release metadata before building deployable artifacts
+        stage('Validate Template Release Metadata') {
+            steps {
+                sh 'python3 tools/template-versioning/release.py validate'
+            }
+        }
+
+        // Build and push Docker images
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    def registryUrl = "http://${env.DOCKER_REGISTRY}"
+                    docker.withRegistry(registryUrl) {
+                        def authApiImage = docker.build(
+                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-auth-api:${SHORT_COMMIT_ID}",
+                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.auth ."
+                        )
+                        authApiImage.push()
+
+                        def mainApiImage = docker.build(
+                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-main-api:${SHORT_COMMIT_ID}",
+                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.api ."
+                        )
+                        mainApiImage.push()
+
+                        def uiImage = docker.build(
+                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-ui:${SHORT_COMMIT_ID}",
+                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.ui ."
+                        )
+                        uiImage.push()
+                    }
+                }
+            }
+        }
+
+        // ── 3  Deploy ────────────────────────────────────────────────
+        stage('Deploy') {
+            steps {
+                script {
+                    // TODO: Load these from Jenkins credentials or Vault
+                    def serverIpAddress  = "CHANGE_ME"
+                    def serverPassword   = "CHANGE_ME"
+                    def serverAppFolder  = "/opt/data/${env.APP_NAME}"
+                    def serverUser       = "appadmin"
+                    def dockerRegistryUrl = env.DOCKER_REGISTRY
+
+                    def remote = [:]
+                    remote.name          = "${env.APP_NAME}-${env.BUILD_ENV}-server"
+                    remote.host          = serverIpAddress
+                    remote.user          = serverUser
+                    remote.allowAnyHosts = true
+                    remote.password      = serverPassword
+
+                    sshCommand remote: remote, command: """
+                        sudo su - <<EOF
+                        cd ${serverAppFolder}
+                        export COMMIT_ID=${SHORT_COMMIT_ID}
+                        export DOCKER_REGISTRY_URL=\$(echo "${dockerRegistryUrl}" | cut -d':' -f1)
+
+                        if [ "${env.BUILD_ENV}" = "production" ]; then
+                            export PROXY_VALUE='http://155.69.74.233:3128'
+                            export NO_PROXY_VALUE='localhost,127.0.0.1,::1,*.nie.edu.sg,172.18.0.0/16,172.17.0.0/16,155.69.0.0/16'
+                        fi
+
+                        docker compose up -d
+EOF
+                    """
+                }
+            }
+        }
+
+        // ── 4  Run database migrations ───────────────────────────────
+        stage('Run Migrations') {
+            steps {
+                script {
+                    def serverIpAddress  = "CHANGE_ME"
+                    def serverPassword   = "CHANGE_ME"
+                    def serverAppFolder  = "/opt/data/${env.APP_NAME}"
+                    def serverUser       = "appadmin"
+
+                    def remote = [:]
+                    remote.name          = "${env.APP_NAME}-${env.BUILD_ENV}-server"
+                    remote.host          = serverIpAddress
+                    remote.user          = serverUser
+                    remote.allowAnyHosts = true
+                    remote.password      = serverPassword
+
+                    // EF Core migrations are applied on startup via context.Database.Migrate()
+                    // This stage waits for the API container to become healthy
+                    sshCommand remote: remote, command: """
+                        sudo su - <<EOF
+                        cd ${serverAppFolder}
+                        echo 'Waiting for API to start and apply migrations...'
+                        for i in \$(seq 1 30); do
+                            if docker exec ${env.APP_NAME}-api-service wget -q -O- http://localhost:8080/health/live 2>/dev/null | grep -q ok; then
+                                echo 'API is healthy — migrations applied successfully.'
+                                exit 0
+                            fi
+                            sleep 2
+                        done
+                        echo 'WARNING: API health check timed out after 60s.'
+                        exit 1
+EOF
+                    """
+                }
+            }
+        }
+    }
+}

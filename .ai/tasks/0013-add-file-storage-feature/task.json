@@ -1,0 +1,35 @@
+{
+  "taskId": "0013",
+  "slug": "add-file-storage-feature",
+  "title": "Add Cloud Storage abstraction (Local + S3 providers)",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": true,
+  "status": "scaffolded",
+  "minTemplateVersion": "2026.04.28.2",
+  "templateVersionAfterApply": "2026.05.03.1",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "summary": "Adds an IFileStorageProvider abstraction with LocalFileStorageProvider and S3FileStorageProvider implementations, switchable via FileStorage:Provider in appsettings. Replaces ad-hoc file IO in derived repos so document-management can move between local disk and S3 without code changes.",
+  "appliesIf": {
+    "noneFileExist": [
+      "src/backend/Libraries/Services/Services/FileStorage/IFileStorageProvider.cs"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register the configured IFileStorageProvider implementation in DI" },
+    { "path": "build/appsettings.api.json", "reason": "Add FileStorage configuration section (Provider/BasePath/S3*)" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Services/Services/FileStorage/IFileStorageProvider.cs",
+    "src/backend/Libraries/Services/Services/FileStorage/LocalFileStorageProvider.cs",
+    "src/backend/Libraries/Services/Services/FileStorage/S3FileStorageProvider.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "IFileStorageProvider", "paths": ["src/backend/API/Program.cs"], "expectMatchesAtLeast": 1 },
+    { "type": "grep", "pattern": "\"FileStorage\"", "paths": ["build/appsettings.api.json"], "expectMatchesAtLeast": 1 }
+  ],
+  "docs": [".ai/features/cloud-storage/README.md"]
+}

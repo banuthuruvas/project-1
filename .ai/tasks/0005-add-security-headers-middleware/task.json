@@ -1,0 +1,33 @@
+{
+  "taskId": "0005",
+  "slug": "add-security-headers-middleware",
+  "title": "Add SecurityHeadersMiddleware (CSP, HSTS, X-Frame-Options, etc.)",
+  "type": "security",
+  "breaking": false,
+  "runOnClone": true,
+  "minTemplateVersion": "2026.04.28.1",
+  "templateVersionAfterApply": "2026.04.28.2",
+  "status": "released",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "status": "scaffolded",
+  "summary": "Adds a SecurityHeadersMiddleware that emits CSP, Strict-Transport-Security, X-Frame-Options=DENY, X-Content-Type-Options=nosniff, Referrer-Policy=strict-origin-when-cross-origin, Permissions-Policy on every response. Aligns nginx.conf so headers are not stripped or duplicated.",
+  "owaspMapping": ["W-A05", "API8"],
+  "appliesIf": {
+    "noneFileExist": ["src/backend/API/Middleware/SecurityHeadersMiddleware.cs"]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register UseSecurityHeaders() before UseSwagger / MapControllers" },
+    { "path": "build/nginx.conf", "reason": "Stop emitting headers from nginx that the API also emits — single source of truth in API" }
+  ],
+  "filesCreated": [
+    "src/backend/API/Middleware/SecurityHeadersMiddleware.cs",
+    "src/backend/API/Middleware/SecurityHeadersOptions.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "command", "run": "curl -sI http://localhost:5002/health | grep -iE 'strict-transport|content-security|x-content-type|x-frame|referrer-policy|permissions-policy' | wc -l", "expectStdoutMatches": "^[6-9]$" }
+  ],
+  "docs": [".ai/common/08-security-owasp-top10-2025.md"]
+}

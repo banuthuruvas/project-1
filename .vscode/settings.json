@@ -1,0 +1,12 @@
+{
+  "remote.autoForwardPorts": false,
+  "dotnet.projects.enableFileBasedPrograms": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "window.title": "NieTemplate"
+}

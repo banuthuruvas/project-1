@@ -1,0 +1,20 @@
+# NIE Template fleet — explicit list of derived repos the bot should scan.
+#
+# Used when `tools/template-bot/bot.py --fleet-config tools/template-bot/fleet.yml`.
+# Alternative: pass `--registry <url>` to read the active fleet from the registry.
+#
+# Fields:
+#   repo:    "owner/name" (required)
+#   branch:  base branch the bot opens PRs against (default "main")
+#   skip:    true to exclude (e.g. archived repos, pre-prod sandboxes)
+#   notes:   free text (not consumed by the bot, useful for audit)
+
+repos:
+  - repo: NIE/example-derived-app
+    branch: main
+    notes: "pilot — first repo to opt into auto-PRs"
+
+  - repo: NIE/another-pilot
+    branch: main
+    skip: true
+    notes: "paused while team is in feature freeze"

@@ -1,0 +1,27 @@
+name: progressive-web-app
+title: Progressive Web App
+category: frontend
+status: scaffolded
+description: >
+  Web app manifest, service worker registration, and install prompt handling.
+  Allows the app to be installed on user devices as a standalone app with
+  offline capability and home-screen shortcuts.
+copierFlag: null
+relatedTasks: []
+dependsOn: ["ui-component-library"]
+removableInDerivedRepo: false
+removalTaskId: null
+files:
+  - path: "src/frontend/main/public/manifest.json"
+    role: manifest
+  - path: "src/frontend/main/src/service-worker.ts"
+    role: service-worker
+  - path: "src/frontend/main/src/components/InstallPromptBanner.vue"
+    role: component
+  - path: "src/frontend/main/src/composables/useServiceWorker.ts"
+    role: composable
+  - path: "src/frontend/main/vite.config.ts"
+    role: config
+tags: [pwa, offline, install, manifest]
+owners:
+  - "group:nie-platform"

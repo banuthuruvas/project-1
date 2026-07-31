@@ -1,0 +1,162 @@
+# Portal SSO Sender
+
+This folder contains a working reference for the **portal side** of the NIE Template SSO flow.
+
+It shows how to:
+
+1. take the `state`, `nonce`, `callbackUrl`, and `returnUrl` values from `Auth/SsoStart`
+2. build the signed + encrypted SSO payload expected by the Auth service
+3. `POST` that payload to `Auth/SsoCallback`
+4. redirect the browser back to the auth frontend so it can call `Auth/SsoFinalize`
+
+## Flow
+
+1. The auth frontend calls `GET /api/Auth/SsoStart`
+2. The auth frontend redirects the user to the portal using the returned `launchUrl`
+3. The portal authenticates the current portal user and creates:
+   - `source_system`
+   - `source_url`
+   - `state`
+   - `nonce`
+   - `exchange_token`
+   - optional `preferred_username`
+   - optional `email`
+   - standard JWT claims (`iss`, `aud`, `iat`, `nbf`, `exp`, `jti`, `sub`)
+4. The portal signs the payload with its private key using `PS256`
+5. The portal encrypts the signed token with the Auth service public key using `RSA-OAEP-256` + `A256GCM`
+6. The portal posts:
+
+```json
+{
+  "state": "the-state-from-sso-start",
+  "encryptedPayload": "nested-jwe-string"
+}
+```
+
+to `Auth/SsoCallback`
+
+7. The portal redirects the browser back to the `returnUrl` with `state` preserved
+8. The auth frontend polls `Auth/SsoFinalize?state=...`
+
+## Files
+
+- `PortalSsoSender.cs`: reusable helper that signs, encrypts, and posts the callback
+- `Program.cs`: small CLI harness for testing the flow manually
+- `appsettings.sample.json`: sample config with placeholders
+- `../portal-sso-keygen`: .NET helper that generates PEM key pairs for Windows-friendly local setup
+- `scripts/generate-dev-keys.ps1`: Windows key generation helper
+- `scripts/generate-dev-keys.sh`: Linux key generation helper
+- `scripts/run-local-sso-test.ps1`: full local round-trip test against Auth + mock exchange
+
+## Real Values vs Static Sample Values
+
+- `State` and `Nonce` can never be committed as real values because `Auth/SsoStart` creates new one-time values for every login attempt.
+- `ExchangeToken` should be a short-lived one-time token minted by the portal or portal backend.
+- Real signing and decryption keys should live in secret storage, not in the repo.
+
+## How To Use
+
+1. Copy `appsettings.sample.json` to `appsettings.json`
+2. Fill in the real portal signing private key and the Auth service encryption public key, or set `PortalSigningPrivateKeyPath` / `AuthEncryptionPublicKeyPath`
+3. Fill in the `state`, `nonce`, `callbackUrl`, and `returnUrl` from `Auth/SsoStart`
+4. Set a real `exchange_token`
+5. Run:
+
+```powershell
+dotnet run --project tools/portal-sso-sender/PortalSsoSender.csproj
+```
+
+You can also point the tool at an explicit config file:
+
+```powershell
+dotnet run --project tools/portal-sso-sender/PortalSsoSender.csproj -- --config tools/portal-sso-sender/appsettings.json
+```
+
+## Generate Keys
+
+### Windows
+
+Use the bundled PowerShell helper:
+
+```powershell
+./tools/portal-sso-sender/scripts/generate-dev-keys.ps1
+```
+
+That script calls the bundled .NET key generator and creates:
+
+- `tools/portal-sso-sender/.dev-keys/portal-signing-private.pem`
+- `tools/portal-sso-sender/.dev-keys/portal-signing-public.pem`
+- `tools/portal-sso-sender/.dev-keys/auth-decryption-private.pem`
+- `tools/portal-sso-sender/.dev-keys/auth-decryption-public.pem`
+
+Windows can also call the key generator directly:
+
+```powershell
+dotnet run --project tools/portal-sso-keygen/PortalSsoKeygen.csproj -- tools/portal-sso-sender/.dev-keys
+```
+
+### Linux
+
+Use the bundled shell helper:
+
+```bash
+./tools/portal-sso-sender/scripts/generate-dev-keys.sh
+```
+
+Manual `openssl` alternative:
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out portal-signing-private.pem
+openssl rsa -in portal-signing-private.pem -pubout -out portal-signing-public.pem
+
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out auth-decryption-private.pem
+openssl rsa -in auth-decryption-private.pem -pubout -out auth-decryption-public.pem
+```
+
+## Local End-To-End Test
+
+For a real local verification run:
+
+1. Make sure Valkey is running on `localhost:6379`
+2. Run:
+
+```powershell
+./tools/portal-sso-sender/scripts/run-local-sso-test.ps1
+```
+
+That script:
+
+- generates dev keys if needed
+- starts a mock SSO exchange API on `http://localhost:5210`
+- starts the Auth API on `http://localhost:5001` with Portal SSO enabled through environment overrides
+- calls `Auth/SsoStart`
+- sends a signed + encrypted callback through `PortalSsoSender`
+- calls `Auth/SsoFinalize`
+- verifies the issued session through `Auth/Verify`
+
+If it succeeds, you get a real issued `sessionToken` from the Auth service.
+
+## Portal Integration Notes
+
+In a real portal app, the logic from `PortalSsoSender` belongs in the portal's SSO handoff controller or handler. The portal should:
+
+- read the launch parameters generated by the NIE Auth service
+- use the already authenticated portal user
+- mint a short-lived one-time `exchange_token`
+- sign + encrypt the payload
+- call the Auth callback server-to-server
+- redirect the browser back to the provided `returnUrl`
+
+## Important
+
+- The Auth service does **not** trust `Origin` or `Referer` as the main proof of sender.
+- The trusted sender proof comes from:
+  - callback IP allowlist, if configured
+  - `iss` / `aud`
+  - `source_system`
+  - optional `source_url`
+  - `jti`
+  - `state`
+  - successful signature and decryption
+- `source_url` is part of the signed/encrypted payload, so it is safer than a plain HTTP header.
+- `nonce` must round-trip from `SsoStart` to `SsoCallback`; the Auth service rejects mismatches.

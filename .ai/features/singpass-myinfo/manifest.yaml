@@ -1,0 +1,30 @@
+name: singpass-myinfo
+title: Singpass MyInfo
+category: backend
+status: scaffolded
+description: >
+  Full FAPI-compliant Singpass MyInfo integration (Pushed Authorization
+  Request, DPoP-bound tokens, JWE-encrypted ID + UserInfo, JWS client
+  assertion). Adopt only when onboarding Singapore citizens. Hard-depends
+  on the SSRF allowlist (task 0006).
+copierFlag: include_myinfo
+relatedTasks: ["0014"]
+dependsOn: ["shared-utilities"]
+removableInDerivedRepo: true
+removalTaskId: null
+files:
+  - path: "src/backend/Libraries/Services/Services/MyInfo/IMyInfoService.cs"
+    role: interface
+  - path: "src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs"
+    role: implementation
+  - path: "src/backend/API/Controllers/MyInfoController.cs"
+    role: controller
+  - path: "src/frontend/main/src/services/myInfoService.ts"
+    role: client
+  - path: "src/frontend/main/src/staff/pages/staff/MyInfoPage.vue"
+    role: page
+  - path: "src/frontend/main/src/staff/pages/staff/MyInfoCallback.vue"
+    role: page
+tags: [singpass, myinfo, fapi, oidc, oauth]
+owners:
+  - "group:nie-platform"

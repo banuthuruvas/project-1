@@ -1,0 +1,46 @@
+{
+  "taskId": "0011",
+  "slug": "add-workflow-engine-feature",
+  "title": "Add Workflow Engine feature (table-driven state machine)",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": true,
+  "status": "scaffolded",
+  "minTemplateVersion": "2026.04.28.2",
+  "templateVersionAfterApply": "2026.05.03.1",
+  "dependsOn": ["0004", "0008"],
+  "supersedes": null,
+  "summary": "Adds a table-driven workflow engine: EWorkflowState enum, WorkflowTransition + WorkflowStateLog entities, IWorkflowService + WorkflowService with role-aware transition validation, WorkflowController, plus WorkflowTimeline and WorkflowActionBar Vue components. Used by procurement and any approval-driven entity in derived repos.",
+  "appliesIf": {
+    "noneFileExist": [
+      "src/backend/Libraries/Services/Services/Workflow/IWorkflowService.cs",
+      "src/frontend/main/src/services/workflowService.ts"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register IWorkflowService in DI" },
+    { "path": "src/backend/Libraries/Data/Data/NieTemplateDbContext.cs", "reason": "Add DbSets for WorkflowTransition + WorkflowStateLog and seed default transitions" },
+    { "path": "src/backend/Libraries/Domain/Models/PurchaseOrder.cs", "reason": "Add WorkflowState property to demonstrate integration on the procurement sample" },
+    { "path": "src/backend/Libraries/Domain/Security/AccessFunctionCatalog.cs", "reason": "Add workflow:* access function keys" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Domain/Enum/EWorkflowState.cs",
+    "src/backend/Libraries/Domain/Models/WorkflowTransition.cs",
+    "src/backend/Libraries/Domain/Models/WorkflowStateLog.cs",
+    "src/backend/Libraries/Services/Services/Workflow/IWorkflowService.cs",
+    "src/backend/Libraries/Services/Services/Workflow/WorkflowService.cs",
+    "src/backend/API/Controllers/WorkflowController.cs",
+    "src/frontend/main/src/types/workflow.ts",
+    "src/frontend/main/src/services/workflowService.ts",
+    "src/frontend/main/src/components/workflow/WorkflowTimeline.vue",
+    "src/frontend/main/src/components/workflow/WorkflowActionBar.vue"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 },
+    { "type": "grep", "pattern": "IWorkflowService", "paths": ["src/backend/API/Program.cs"], "expectMatchesAtLeast": 1 },
+    { "type": "grep", "pattern": "EWorkflowState", "paths": ["src/frontend/main/src/types/workflow.ts"], "expectMatchesAtLeast": 1 }
+  ],
+  "docs": [".ai/features/workflow-engine/README.md", ".ai/features/workflow-engine/files.md"]
+}

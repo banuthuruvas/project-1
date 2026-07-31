@@ -1,0 +1,41 @@
+{
+  "taskId": "0014",
+  "slug": "add-singpass-myinfo-feature",
+  "title": "Add Singpass MyInfo feature (FAPI: PAR + DPoP + JWE)",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": false,
+  "status": "scaffolded",
+  "minTemplateVersion": "2026.04.28.2",
+  "templateVersionAfterApply": "2026.05.03.1",
+  "dependsOn": ["0006"],
+  "supersedes": null,
+  "summary": "Adds the MyInfo (Singpass) integration feature: MyInfoService with full FAPI compliance (Pushed Authorization Request, DPoP-bound access tokens, JWE-encrypted ID + UserInfo, JWS client assertion), MyInfoController with 10-minute Valkey state, and frontend Page + Callback + service. Strictly opt-in: only derived repos onboarding Singapore citizens should adopt.",
+  "appliesIf": {
+    "noneFileExist": [
+      "src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs",
+      "src/backend/API/Controllers/MyInfoController.cs"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register IMyInfoService in DI, configure MyInfo options section" },
+    { "path": "build/appsettings.api.json", "reason": "Add MyInfo configuration section (ClientId/RedirectUri/DiscoveryUrl/JwtClientAuthentication/Scopes)" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Services/Services/MyInfo/IMyInfoService.cs",
+    "src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs",
+    "src/backend/API/Controllers/MyInfoController.cs",
+    "src/backend/API/MyInfo/Jwks/private-jwks.json.example",
+    "src/frontend/main/src/staff/pages/staff/MyInfoPage.vue",
+    "src/frontend/main/src/staff/pages/staff/MyInfoCallback.vue",
+    "src/frontend/main/src/services/myInfoService.ts"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 },
+    { "type": "grep", "pattern": "IMyInfoService", "paths": ["src/backend/API/Program.cs"], "expectMatchesAtLeast": 1 },
+    { "type": "grep", "pattern": "SsrfGuard", "paths": ["src/backend/Libraries/Services/Services/MyInfo/MyInfoService.cs"], "expectMatchesAtLeast": 1 }
+  ],
+  "docs": [".ai/features/singpass-myinfo/README.md", ".ai/features/singpass-myinfo/files.md"]
+}

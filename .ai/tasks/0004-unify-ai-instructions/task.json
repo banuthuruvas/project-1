@@ -1,0 +1,66 @@
+{
+  "taskId": "0004",
+  "slug": "unify-ai-instructions",
+  "title": "Adopt unified .ai/ instruction folder",
+  "type": "refactor",
+  "breaking": false,
+  "runOnClone": true,
+  "minTemplateVersion": "2026.04.13.1",
+  "templateVersionAfterApply": "2026.04.28.1",
+  "dependsOn": ["0001"],
+  "supersedes": null,
+  "summary": "Adopts the single .ai/ instruction folder. Replaces root-level CLAUDE.md/AGENTS.md/GEMINI.md with thin redirect stubs. Replaces .github/copilot-instructions.md with a stub. Replaces .kiro/steering/* with a redirect file. Removes agents/*.instructions.md (their content lives in .ai/common/). ADRs move from agents/NNN-*.md to .ai/adrs/NNN-*.md.",
+  "appliesIf": {
+    "noneFileExist": [".ai/README.md"]
+  },
+  "filesDeleted": [
+    "agents/backend.instructions.md",
+    "agents/csharp.instructions.md",
+    "agents/access-control.instructions.md",
+    "agents/audit-log.instructions.md",
+    "agents/frontend.instructions.md",
+    "agents/typescript-vue.instructions.md",
+    ".github/instructions/"
+  ],
+  "filesEdited": [
+    { "path": "CLAUDE.md", "reason": "Replace inline content with 10-line redirect to .ai/tool-routes/claude.md" },
+    { "path": "AGENTS.md", "reason": "Replace inline content with 10-line redirect to .ai/README.md" },
+    { "path": "GEMINI.md", "reason": "Replace inline content with 10-line redirect to .ai/tool-routes/gemini.md" },
+    { "path": ".github/copilot-instructions.md", "reason": "Replace with redirect to .ai/tool-routes/copilot.md" },
+    { "path": ".kiro/steering/_redirect.md", "reason": "Create redirect file pointing to .ai/" }
+  ],
+  "filesCreated": [
+    ".ai/README.md",
+    ".ai/common/00-project-overview.md",
+    ".ai/common/01-architecture.md",
+    ".ai/common/02-coding-standards-csharp.md",
+    ".ai/common/03-coding-standards-typescript-vue.md",
+    ".ai/common/04-do-and-dont.md",
+    ".ai/common/05-aidlc-process.md",
+    ".ai/common/06-best-practices-vue.md",
+    ".ai/common/07-best-practices-dotnet.md",
+    ".ai/common/08-security-owasp-top10-2025.md",
+    ".ai/common/09-template-versioning.md",
+    ".ai/tool-routes/claude.md",
+    ".ai/tool-routes/copilot.md",
+    ".ai/tool-routes/kiro.md",
+    ".ai/tool-routes/gemini.md",
+    ".ai/ALIGN.md",
+    ".ai/tasks/index.json",
+    ".ai/tasks/_TEMPLATE/task.json",
+    ".ai/tasks/_TEMPLATE/apply.md",
+    ".ai/tasks/_TEMPLATE/verify.sh",
+    ".ai/tasks/_TEMPLATE/rollback.md",
+    ".ai/adrs/TEMPLATE.md",
+    ".ai/features/_TEMPLATE/README.md",
+    ".ai/features/_TEMPLATE/files.md",
+    ".ai/features/_TEMPLATE/do-dont.md",
+    ".ai/features/_TEMPLATE/customize.md",
+    ".ai/features/_TEMPLATE/verify.md"
+  ],
+  "verification": [
+    { "type": "command", "run": "test -f .ai/README.md && test -f .ai/ALIGN.md && test -f .ai/tasks/index.json", "expectExit": 0 },
+    { "type": "grep", "pattern": "All development guidelines are in", "paths": ["CLAUDE.md", "AGENTS.md", "GEMINI.md", ".github/copilot-instructions.md"], "expectMatches": 0 }
+  ],
+  "docs": [".ai/README.md"]
+}

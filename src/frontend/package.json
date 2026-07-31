@@ -1,0 +1,30 @@
+{
+  "name": "nietemplate-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NieTemplate frontend workspace - monorepo structure",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "pnpm run -r --parallel dev",
+    "dev:main": "pnpm --filter main dev",
+    "dev:auth": "pnpm --filter auth dev",
+    "build": "pnpm run build:ui && pnpm run build:shared && pnpm run build:main && pnpm run build:auth",
+    "build:ui": "pnpm --filter @nietemplate/ui build",
+    "build:shared": "pnpm --filter @nietemplate/shared build",
+    "build:main": "pnpm --filter main build:production",
+    "build:auth": "pnpm --filter auth build:production",
+    "type-check": "pnpm run -r type-check",
+    "generate:api": "node scripts/generate-api-types.mjs",
+    "clean": "pnpm run -r clean && rm -rf node_modules",
+    "lint": "pnpm run -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10.33.0"
+  }
+}
+

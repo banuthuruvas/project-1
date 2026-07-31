@@ -1,0 +1,45 @@
+{
+  "taskId": "0010",
+  "slug": "add-ai-chatbot-feature",
+  "title": "Add AI Chatbot feature (pgvector + SSE streaming)",
+  "type": "feature",
+  "breaking": false,
+  "runOnClone": false,
+  "status": "scaffolded",
+  "minTemplateVersion": "2026.04.28.2",
+  "templateVersionAfterApply": "2026.05.03.1",
+  "dependsOn": ["0004"],
+  "supersedes": null,
+  "summary": "Adds an opt-in AI chatbot: ChatConversation/ChatMessage/ChatEmbedding entities (pgvector), IChatService + ChatService with placeholder LLM hooks, ChatController with SSE streaming, plus ChatView page and Chat* components. Skip this task in derived repos that do not need a chat surface.",
+  "appliesIf": {
+    "noneFileExist": [
+      "src/backend/Libraries/Services/Services/Chat/IChatService.cs",
+      "src/frontend/main/src/services/chatService.ts"
+    ]
+  },
+  "filesDeleted": [],
+  "filesEdited": [
+    { "path": "src/backend/API/Program.cs", "reason": "Register IChatService in DI" },
+    { "path": "src/backend/Libraries/Data/Data/NieTemplateDbContext.cs", "reason": "Add DbSets for ChatConversation, ChatMessage, ChatEmbedding (with pgvector configuration)" },
+    { "path": "src/backend/Libraries/Domain/Security/AccessFunctionCatalog.cs", "reason": "Add chat:* access function keys" },
+    { "path": "src/frontend/main/src/router/index.ts", "reason": "Register /chat route guarded by chat:read" },
+    { "path": "src/frontend/main/src/constants/permissions.ts", "reason": "Add chat permission constants" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Domain/Models/ChatEntities.cs",
+    "src/backend/Libraries/Services/Services/Chat/IChatService.cs",
+    "src/backend/Libraries/Services/Services/Chat/ChatService.cs",
+    "src/backend/API/Controllers/ChatController.cs",
+    "src/frontend/main/src/pages/chat/ChatView.vue",
+    "src/frontend/main/src/components/chat/ChatSidebar.vue",
+    "src/frontend/main/src/components/chat/ChatMessageBubble.vue",
+    "src/frontend/main/src/components/chat/ChatInputBox.vue",
+    "src/frontend/main/src/services/chatService.ts"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 },
+    { "type": "grep", "pattern": "IChatService", "paths": ["src/backend/API/Program.cs"], "expectMatchesAtLeast": 1 }
+  ],
+  "docs": [".ai/features/ai-chatbot/README.md"]
+}

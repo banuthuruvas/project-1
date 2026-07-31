@@ -1,0 +1,35 @@
+name: ai-chatbot
+title: AI Chatbot
+category: backend
+status: scaffolded
+description: >
+  AI-powered chat with SSE streaming, conversation management, and pgvector
+  semantic search. Pluggable LLM backends (Azure OpenAI / AWS Bedrock /
+  placeholder). Adopt only if the project surfaces a chat experience.
+copierFlag: include_chat
+relatedTasks: ["0010"]
+dependsOn: ["shared-utilities"]
+removableInDerivedRepo: true
+removalTaskId: null
+files:
+  - path: "src/backend/Libraries/Domain/Models/ChatEntities.cs"
+    role: domain
+  - path: "src/backend/Libraries/Services/Services/Chat/IChatService.cs"
+    role: interface
+  - path: "src/backend/Libraries/Services/Services/Chat/ChatService.cs"
+    role: implementation
+  - path: "src/backend/API/Controllers/ChatController.cs"
+    role: controller
+  - path: "src/frontend/main/src/pages/chat/ChatView.vue"
+    role: page
+  - path: "src/frontend/main/src/components/chat/ChatSidebar.vue"
+    role: component
+  - path: "src/frontend/main/src/components/chat/ChatMessageBubble.vue"
+    role: component
+  - path: "src/frontend/main/src/components/chat/ChatInputBox.vue"
+    role: component
+  - path: "src/frontend/main/src/services/chatService.ts"
+    role: client
+tags: [llm, sse, pgvector, ai]
+owners:
+  - "group:nie-platform"

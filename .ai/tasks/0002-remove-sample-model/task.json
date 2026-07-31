@@ -1,0 +1,56 @@
+{
+  "taskId": "0002",
+  "slug": "remove-sample-model",
+  "title": "Remove SampleModel scaffolding (replaced by Procurement reference sample)",
+  "type": "cleanup",
+  "breaking": false,
+  "runOnClone": true,
+  "minTemplateVersion": "2026.04.13.1",
+  "templateVersionAfterApply": "2026.04.28.1",
+  "dependsOn": ["0001"],
+  "supersedes": null,
+  "summary": "SampleModel was the original demo entity. The Procurement reference sample replaced it. This task removes SampleModel + SampleChildModel + ESampleEnum + their controller + service + DTOs, refactors Document to a polymorphic owner pattern (OwnerType + OwnerId), drops Sample access functions, and ships a migration that drops the old tables and the FK from Documents.",
+  "appliesIf": {
+    "anyFileExists": [
+      "src/backend/Libraries/Domain/Models/SampleModel.cs",
+      "src/backend/Libraries/Services/Services/SampleModel/ISampleModelService.cs"
+    ]
+  },
+  "filesDeleted": [
+    "src/backend/API/Controllers/SampleModelController.cs",
+    "src/backend/Libraries/Domain/Models/SampleModel.cs",
+    "src/backend/Libraries/Domain/Models/SampleChildModel.cs",
+    "src/backend/Libraries/Domain/Dto/SampleModelDto.cs",
+    "src/backend/Libraries/Domain/Dto/SampleChildDto.cs",
+    "src/backend/Libraries/Domain/Enum/ESampleEnum.cs",
+    "src/backend/Libraries/Services/Services/SampleModel/",
+    "tests/specs/api/sample-model.api.spec.ts"
+  ],
+  "filesEdited": [
+    { "path": "src/backend/Libraries/Domain/Models/Document.cs", "reason": "Drop SampleModelId FK; introduce OwnerType + OwnerId polymorphic pair" },
+    { "path": "src/backend/Libraries/Data/Data/NieTemplateDbContext.cs", "reason": "Remove SampleModels/SampleChildModels DbSets + AISolution relationship block + commented duplicate" },
+    { "path": "src/backend/API/Program.cs", "reason": "Drop AISolution using; drop ISampleModelService DI registration; add Domain.Services.Code using" },
+    { "path": "src/backend/API/Mapping/MappingProfile.cs", "reason": "Drop SampleModel + SampleChildModel Mapster mappings" },
+    { "path": "src/backend/API/Extensions/DatabaseSeeder.cs", "reason": "Remove SeedSampleModelsAsync + its call; replace fragile r.Code == 'admin' with r.Id == (int)ERole.Administrator" },
+    { "path": "src/backend/Libraries/Domain/Security/AccessFunctionCatalog.cs", "reason": "Remove SampleRead + SampleManage codes; remove their definitions; remove from all Roles; reword DocumentManage resource description; add Procurement codes (kept for reference sample)" },
+    { "path": "src/backend/Libraries/Services/Services/Code/ICodeService.cs", "reason": "Rename namespace AISolution → Code (AISolution was sample-model legacy)" },
+    { "path": "src/backend/Libraries/Services/Services/Code/CodeService.cs", "reason": "Rename namespace AISolution → Code" },
+    { "path": "src/backend/API/Controllers/CodeController.cs", "reason": "Update using to new Domain.Services.Code namespace" },
+    { "path": "src/backend/API/Controllers/CatalogItemController.cs", "reason": "Replace SampleRead/SampleManage attributes with ProcurementCatalogRead/ProcurementCatalogManage (procurement now has its own access functions)" },
+    { "path": "src/backend/API/Controllers/VendorController.cs", "reason": "Replace SampleRead/SampleManage with ProcurementVendorRead/ProcurementVendorManage" },
+    { "path": "src/backend/API/Controllers/PurchaseOrderController.cs", "reason": "Replace SampleRead/SampleManage with ProcurementOrderRead/ProcurementOrderManage; ProcessApproval uses ProcurementOrderApprove" },
+    { "path": "src/frontend/main/src/constants/permissions.ts", "reason": "Remove SampleRead/SampleManage; add Procurement* mirrors" },
+    { "path": "tests/specs/fixtures/test-config.ts", "reason": "Drop sampleModel routes/endpoints; add vendor + purchaseOrder reference endpoints" }
+  ],
+  "filesCreated": [
+    "src/backend/Libraries/Data/Migrations/20260428023250_RemoveSampleModelAndPolymorphicDocument.cs",
+    "src/backend/Libraries/Data/Migrations/20260428023250_RemoveSampleModelAndPolymorphicDocument.Designer.cs"
+  ],
+  "verification": [
+    { "type": "command", "run": "dotnet build src/backend/NieTemplate.sln", "expectExit": 0 },
+    { "type": "grep", "pattern": "SampleModel|SampleChildModel|ESampleEnum|ISampleModelService", "paths": ["src/", "tests/"], "expectMatches": 0 },
+    { "type": "grep", "pattern": "Domain\\.Services\\.AISolution", "paths": ["src/backend/"], "expectMatches": 0 },
+    { "type": "command", "run": "pnpm --filter main type-check", "expectExit": 0 }
+  ],
+  "docs": [".ai/features/_samples/sample-model/remove.md"]
+}

@@ -1,0 +1,24 @@
+name: cloud-storage
+title: Cloud Storage (Local + S3)
+category: backend
+status: scaffolded
+description: >
+  Pluggable file storage abstraction (IFileStorageProvider) with Local-disk
+  and AWS-S3 implementations. Switchable via FileStorage:Provider in
+  appsettings. Front-loads the abstraction so future S3 migration is config,
+  not refactor.
+copierFlag: include_storage
+relatedTasks: ["0013"]
+dependsOn: []
+removableInDerivedRepo: true
+removalTaskId: null
+files:
+  - path: "src/backend/Libraries/Services/Services/FileStorage/IFileStorageProvider.cs"
+    role: interface
+  - path: "src/backend/Libraries/Services/Services/FileStorage/LocalFileStorageProvider.cs"
+    role: implementation
+  - path: "src/backend/Libraries/Services/Services/FileStorage/S3FileStorageProvider.cs"
+    role: implementation
+tags: [storage, s3, files]
+owners:
+  - "group:nie-platform"
