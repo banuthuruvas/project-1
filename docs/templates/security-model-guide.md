@@ -127,14 +127,14 @@ public class EntityController : BaseController
 public async Task<IActionResult> GetAll() { ... }
 
     // Owner or Admin check in service layer
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [RequirePermission("entity.edit")]
-    public async Task<IActionResult> Edit(int id, EditDto dto) { ... }
+    public async Task<IActionResult> Edit(Guid id, EditDto dto) { ... }
 
     // Admin-only endpoint
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [RequirePermission("entity.delete")]
-    public async Task<IActionResult> Delete(int id) { ... }
+    public async Task<IActionResult> Delete(Guid id) { ... }
 
 }
 \`\`\`
@@ -142,7 +142,7 @@ public async Task<IActionResult> GetAll() { ... }
 ### Service-Level Authorization
 
 \`\`\`csharp
-public async Task<ApiResponse<EntityDto>> EditAsync(int id, EditDto dto, string currentUser)
+public async Task<ApiResponse<EntityDto>> EditAsync(Guid id, EditDto dto, string currentUser)
 {
 var entity = await \_dbContext.Entities.FindAsync(id);
 

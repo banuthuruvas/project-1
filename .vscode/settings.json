@@ -7,6 +7,5 @@
   },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "window.title": "NieTemplate"
+  }
 }

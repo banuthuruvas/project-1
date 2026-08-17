@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { cn } from "../../../lib/utils";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/vue/24/outline";
+import NieLoaderSymbol from "../../composite/loading/NieLoaderSymbol.vue";
 
 export interface Column<T = unknown> {
   key: string;
@@ -21,6 +22,8 @@ interface Props {
   emptyMessage?: string;
   hoverable?: boolean;
   striped?: boolean;
+  rowClickable?: boolean;
+  rowAriaLabel?: (row: unknown, index: number) => string;
   class?: string;
 }
 
@@ -30,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   emptyMessage: "No data available",
   hoverable: true,
   striped: false,
+  rowClickable: false,
 });
 
 const emit = defineEmits<{
@@ -50,6 +54,33 @@ const handleSort = (column: Column) => {
   emit("sort", column.key, newOrder);
 };
 
+const getSortDirection = (column: Column): "ascending" | "descending" | "none" => {
+  if (props.sortBy !== column.key) return "none";
+  return props.sortOrder === "asc" ? "ascending" : "descending";
+};
+
+const handleRowActivation = (row: unknown, index: number, event?: Event) => {
+  if (!props.rowClickable) return;
+
+  const eventTarget = event?.target;
+  const closestInteractive =
+    eventTarget instanceof Element
+      ? eventTarget.closest(
+          "button, a[href], input, select, textarea, [role='button'], [role='link']",
+        )
+      : null;
+  if (closestInteractive && closestInteractive !== event?.currentTarget) {
+    return;
+  }
+
+  emit("row-click", row, index);
+};
+
+const getRowAriaLabel = (row: unknown, index: number): string => {
+  const customLabel = props.rowAriaLabel?.(row, index)?.trim();
+  return customLabel || `Open row ${index + 1}`;
+};
+
 const getCellValue = (row: unknown, column: Column, index: number): unknown => {
   if (column.render) {
     return column.render(row as never, index);
@@ -68,15 +99,20 @@ const getCellValue = (row: unknown, column: Column, index: number): unknown => {
             :key="column.key"
             :style="{ width: column.width }"
             :class="[
-              'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary-500 dark:text-secondary-400',
-              column.sortable ? 'cursor-pointer select-none hover:bg-secondary-100 dark:hover:bg-secondary-700' : '',
+              'px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-secondary-500 dark:text-secondary-400',
               column.class,
             ]"
-            @click="handleSort(column)"
+            :aria-sort="column.sortable ? getSortDirection(column) : undefined"
           >
-            <div class="flex items-center gap-1">
+            <button
+              v-if="column.sortable"
+              type="button"
+              class="flex min-h-11 w-full items-center gap-1 text-left hover:text-secondary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-secondary-100"
+              :aria-label="`Sort by ${column.label}`"
+              @click="handleSort(column)"
+            >
               <span>{{ column.label }}</span>
-              <span v-if="column.sortable" class="flex flex-col">
+              <span class="flex flex-col">
                 <ChevronUpIcon
                   class="h-3 w-3"
                   :class="sortBy === column.key && sortOrder === 'asc' ? 'text-primary-600' : 'text-secondary-300'"
@@ -86,7 +122,8 @@ const getCellValue = (row: unknown, column: Column, index: number): unknown => {
                   :class="sortBy === column.key && sortOrder === 'desc' ? 'text-primary-600' : 'text-secondary-300'"
                 />
               </span>
-            </div>
+            </button>
+            <span v-else>{{ column.label }}</span>
           </th>
         </tr>
       </thead>
@@ -95,10 +132,7 @@ const getCellValue = (row: unknown, column: Column, index: number): unknown => {
         <tr v-if="loading">
           <td :colspan="columns.length" class="px-6 py-12 text-center">
             <div class="flex items-center justify-center gap-2">
-              <svg class="h-5 w-5 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <NieLoaderSymbol size="sm" label="Loading table data" />
               <span class="text-secondary-500 dark:text-secondary-400">Loading...</span>
             </div>
           </td>
@@ -116,11 +150,18 @@ const getCellValue = (row: unknown, column: Column, index: number): unknown => {
           v-else
           v-for="(row, index) in data"
           :key="index"
+          :data-table-interactive-row="rowClickable ? '' : undefined"
+          role="row"
+          :tabindex="rowClickable ? 0 : undefined"
+          :aria-label="rowClickable ? getRowAriaLabel(row, index) : undefined"
           :class="[
-            hoverable ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800 cursor-pointer' : '',
+            hoverable ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800' : '',
+            rowClickable ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500' : '',
             striped && index % 2 === 1 ? 'bg-secondary-50 dark:bg-secondary-800/50' : '',
           ]"
-          @click="emit('row-click', row, index)"
+          @click="handleRowActivation(row, index, $event)"
+          @keydown.enter.self="handleRowActivation(row, index)"
+          @keydown.space.self.prevent="handleRowActivation(row, index)"
         >
           <td
             v-for="column in columns"

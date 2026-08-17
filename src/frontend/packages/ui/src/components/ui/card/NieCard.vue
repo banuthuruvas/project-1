@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const cardClasses = computed(() =>
   cn(
-    "rounded-xl border border-secondary-200 bg-white shadow-sm dark:border-secondary-700 dark:bg-secondary-800",
+    "rounded-[var(--theme-radius-panel)] border border-secondary-200 bg-white shadow-[var(--theme-shadow-soft)] dark:border-secondary-700 dark:bg-secondary-800",
     props.class
   )
 );

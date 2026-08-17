@@ -66,7 +66,7 @@ export const Routes = {
   // Main app routes
   dashboard: "dashboard",
   profile: "profile",
-  // Procurement reference sample routes (delete in derived repos via task 0002)
+  // Procurement reference sample routes (remove only after an approved domain replacement)
   vendors: "vendors",
   catalog: "catalog",
   orderHistory: "orders",
@@ -94,20 +94,20 @@ export const ApiEndpoints = {
     ssoFinalize: "Auth/SsoFinalize",
   },
 
-  // Main API - Procurement (reference sample; delete in derived repos via task 0002)
+  // Main API - Procurement (reference sample; remove only after an approved domain replacement)
   vendor: {
     getAll: "Vendor/GetAll",
-    get: (id: number) => `Vendor/Get/${id}`,
+    get: (id: string) => `Vendor/Get/${id}`,
     save: "Vendor/Save",
     edit: "Vendor/Edit",
-    delete: (id: number) => `Vendor/Delete/${id}`,
+    delete: (id: string) => `Vendor/Delete/${id}`,
   },
   purchaseOrder: {
     getAll: "PurchaseOrder/GetAll",
-    get: (id: number) => `PurchaseOrder/Get/${id}`,
+    get: (id: string) => `PurchaseOrder/Get/${id}`,
     save: "PurchaseOrder/Save",
     edit: "PurchaseOrder/Edit",
-    delete: (id: number) => `PurchaseOrder/Delete/${id}`,
+    delete: (id: string) => `PurchaseOrder/Delete/${id}`,
   },
 
   // Main API - Code
@@ -119,8 +119,8 @@ export const ApiEndpoints = {
   // Main API - Document
   document: {
     upload: "Document/Upload",
-    download: (id: number) => `Document/Download/${id}`,
-    delete: (id: number) => `Document/Delete/${id}`,
+    download: (id: string) => `Document/Download/${id}`,
+    delete: (id: string) => `Document/Delete/${id}`,
   },
 
   // Health checks

@@ -7,6 +7,7 @@ services:
     depends_on:
       - postgres
       - valkey
+      - localstack
     networks:
       - devnet
 
@@ -14,7 +15,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: NieTemplate
+      POSTGRES_DB: Application
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -29,6 +30,24 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    networks:
+      - devnet
+
+  # Local AWS S3 emulator — lets you exercise the S3 file-storage provider
+  # (FileStorage:Provider=S3) locally without real AWS. The init script creates
+  # the dev bucket on startup. Pin/update the tag as needed:
+  # https://hub.docker.com/r/localstack/localstack/tags
+  localstack:
+    image: localstack/localstack:4.11.1
+    restart: unless-stopped
+    ports:
+      - "4566:4566" # LocalStack gateway (S3 endpoint)
+    environment:
+      - SERVICES=s3
+      - DEBUG=0
+      - PERSISTENCE=0
+    volumes:
+      - "./localstack/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
     networks:
       - devnet
 

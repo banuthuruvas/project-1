@@ -164,7 +164,6 @@ onUnmounted(() => {
     <NieButton
       v-if="triggerVisibility !== 'hidden'"
       variant="outline"
-      size="sm"
       class="min-w-[8.75rem] justify-between gap-3"
       :class="
         triggerVisibility === 'desktop-only' ? 'hidden md:inline-flex' : ''
@@ -176,7 +175,7 @@ onUnmounted(() => {
         <span>{{ buttonLabel }}</span>
         <span
           v-if="activeCount > 0"
-          class="inline-flex min-w-[1.4rem] items-center justify-center rounded-full bg-primary-600 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+          class="inline-flex min-w-[1.4rem] items-center justify-center rounded-full bg-primary-600 px-1.5 py-0.5 text-caption font-semibold text-on-brand"
         >
           {{ activeCount }}
         </span>
@@ -197,7 +196,7 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen && !isMobileViewport"
-        class="absolute right-0 z-[90] mt-2 w-[22rem] overflow-hidden rounded-2xl border border-secondary-200 bg-white shadow-xl dark:border-secondary-700 dark:bg-secondary-900"
+        class="absolute right-0 z-[90] mt-2 w-[22rem] overflow-hidden rounded-2xl border border-secondary-200 bg-white shadow-[var(--theme-shadow-float)] dark:border-secondary-700 dark:bg-secondary-900"
       >
         <div
           class="flex items-center justify-between border-b border-secondary-200 px-4 py-3 dark:border-secondary-700"
@@ -223,7 +222,7 @@ onUnmounted(() => {
             class="rounded-xl border border-secondary-200 bg-secondary-50/60 p-3 dark:border-secondary-700 dark:bg-secondary-800/70"
           >
             <p
-              class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-secondary-500 dark:text-secondary-400"
+              class="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary-500 dark:text-secondary-400"
             >
               {{ group.label }}
             </p>
@@ -253,7 +252,7 @@ onUnmounted(() => {
                 </span>
                 <span
                   v-if="typeof option.count === 'number'"
-                  class="rounded-full bg-secondary-200 px-2 py-0.5 text-[11px] font-semibold text-secondary-600 dark:bg-secondary-700 dark:text-secondary-300"
+                  class="rounded-full bg-secondary-200 px-2 py-0.5 text-caption font-semibold text-secondary-600 dark:bg-secondary-700 dark:text-secondary-300"
                 >
                   {{ option.count }}
                 </span>
@@ -279,13 +278,13 @@ onUnmounted(() => {
         >
           <button
             type="button"
-            class="absolute inset-0 bg-slate-900/55"
+            class="absolute inset-0 bg-secondary-900/55"
             aria-label="Close filters"
             @click="closePanel"
           />
 
           <div
-            class="nie-smart-filter-sheet relative flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-secondary-200 bg-white shadow-[0_30px_60px_-30px_rgba(15,23,42,0.42),0_18px_30px_-24px_rgba(15,23,42,0.28)] dark:border-secondary-700 dark:bg-secondary-900"
+            class="nie-smart-filter-sheet relative flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[var(--theme-radius-dialog)] border border-secondary-200 bg-white shadow-[var(--theme-shadow-float)] dark:border-secondary-700 dark:bg-secondary-900"
             @click.stop
           >
             <div
@@ -343,7 +342,7 @@ onUnmounted(() => {
                 class="rounded-2xl border border-secondary-200 bg-secondary-50/60 p-3 dark:border-secondary-700 dark:bg-secondary-800/70"
               >
                 <p
-                  class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-secondary-500 dark:text-secondary-400"
+                  class="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary-500 dark:text-secondary-400"
                 >
                   {{ group.label }}
                 </p>
@@ -373,7 +372,7 @@ onUnmounted(() => {
                     </span>
                     <span
                       v-if="typeof option.count === 'number'"
-                      class="rounded-full bg-secondary-200 px-2 py-0.5 text-[11px] font-semibold text-secondary-600 dark:bg-secondary-700 dark:text-secondary-300"
+                      class="rounded-full bg-secondary-200 px-2 py-0.5 text-caption font-semibold text-secondary-600 dark:bg-secondary-700 dark:text-secondary-300"
                     >
                       {{ option.count }}
                     </span>

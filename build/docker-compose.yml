@@ -1,26 +1,32 @@
-name: nietemplate
+name: application
 
 services:
-  nietemplate-ui:
-    image: ${DOCKER_REGISTRY_URL}/nietemplate-ui:${COMMIT_ID}
-    container_name: nietemplate-ui
+  application-ui:
+    image: ${DOCKER_REGISTRY_URL:-local}/application-ui:${COMMIT_ID:-latest}
+    container_name: application-ui
     restart: always
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.ui
     ports:
       - "8102:80"
     networks:
-      - nietemplate-network
+      - application-network
     depends_on:
-      - nietemplate-auth-service
-      - nietemplate-api-service
+      - application-auth-service
+      - application-api-service
 
-  nietemplate-auth-service:
-    image: ${DOCKER_REGISTRY_URL}/nietemplate-auth-api:${COMMIT_ID}
-    container_name: nietemplate-auth-service
+  application-auth-service:
+    image: ${DOCKER_REGISTRY_URL:-local}/application-auth-api:${COMMIT_ID:-latest}
+    container_name: application-auth-service
     restart: always
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.auth
     volumes:
       - ./appsettings.auth.json:/app/appsettings.json:ro
     networks:
-      - nietemplate-network
+      - application-network
     environment:
       - ASPNETCORE_ENVIRONMENT=production
       - HTTPS_PROXY=${PROXY_VALUE:-}
@@ -30,55 +36,64 @@ services:
       - http_proxy=${PROXY_VALUE:-}
       - no_proxy=${NO_PROXY_VALUE:-}
     depends_on:
-      - nietemplate-valkey
+      - application-valkey
 
-  nietemplate-api-service:
-    image: ${DOCKER_REGISTRY_URL}/nietemplate-main-api:${COMMIT_ID}
-    container_name: nietemplate-api-service
+  application-api-service:
+    image: ${DOCKER_REGISTRY_URL:-local}/application-main-api:${COMMIT_ID:-latest}
+    container_name: application-api-service
     restart: always
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.api
     volumes:
       - ./appsettings.api.json:/app/appsettings.json:ro
       - ./uploads:/app/files
     environment:
       - ASPNETCORE_ENVIRONMENT=production
+      - HTTPS_PROXY=${PROXY_VALUE:-}
+      - HTTP_PROXY=${PROXY_VALUE:-}
+      - NO_PROXY=${NO_PROXY_VALUE:-}
+      - https_proxy=${PROXY_VALUE:-}
+      - http_proxy=${PROXY_VALUE:-}
+      - no_proxy=${NO_PROXY_VALUE:-}
     networks:
-      - nietemplate-network
+      - application-network
     depends_on:
-      - nietemplate-postgres
-      - nietemplate-valkey
+      - application-postgres
+      - application-valkey
 
-  nietemplate-valkey:
+  application-valkey:
     image: dhi.io/valkey:9.0.3-debian13
-    container_name: nietemplate-valkey
+    container_name: application-valkey
     restart: always
     networks:
-      - nietemplate-network
+      - application-network
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  nietemplate-postgres:
+  application-postgres:
     image: dhi.io/postgres:18.3-alpine3.22
-    container_name: nietemplate-postgres
+    container_name: application-postgres
     restart: always
     environment:
-      POSTGRES_DB: "NieTemplate"
+      POSTGRES_DB: "Application"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "--auth-host=md5"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     networks:
-      - nietemplate-network
+      - application-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d NieTemplate"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Application"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
 
 networks:
-  nietemplate-network:
+  application-network:
     driver: bridge

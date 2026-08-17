@@ -239,7 +239,6 @@ onUnmounted(() => {
           <NieButton
             v-if="showReset && hasActiveControls"
             variant="ghost"
-            size="sm"
             @click="handleReset"
           >
             <XMarkIcon class="h-4 w-4" />
@@ -255,7 +254,7 @@ onUnmounted(() => {
           class="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 transition hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-100 dark:hover:bg-primary-500/20"
           @click="removeSearchChip"
         >
-          <span class="uppercase tracking-[0.14em] text-[10px]">Search</span>
+          <span class="uppercase tracking-wide text-caption">Search</span>
           <span class="max-w-[16rem] truncate text-left">{{ searchTerm }}</span>
           <XMarkIcon class="h-3.5 w-3.5" />
         </button>
@@ -268,7 +267,7 @@ onUnmounted(() => {
           @click="removeFilterChip(chip.groupKey, chip.value)"
         >
           <span
-            class="uppercase tracking-[0.14em] text-[10px] text-secondary-400 dark:text-secondary-500"
+            class="uppercase tracking-wide text-caption text-secondary-400 dark:text-secondary-500"
           >
             {{ chip.groupLabel }}
           </span>
@@ -362,7 +361,7 @@ onUnmounted(() => {
 .nie-list-mobile-toolbar__inner {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: var(--theme-space-3);
   pointer-events: auto;
 }
 
@@ -370,16 +369,14 @@ onUnmounted(() => {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--theme-space-3);
   min-width: 0;
   height: 3.5rem;
-  padding: 0 0.95rem;
+  padding: var(--theme-space-0) var(--theme-space-4);
   border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
-  border-radius: 1.35rem;
+  border-radius: var(--theme-radius-panel);
   background: color-mix(in srgb, var(--color-surface) 96%, transparent);
-  box-shadow:
-    0 22px 44px -30px rgba(15, 23, 42, 0.48),
-    0 10px 22px -22px rgba(15, 23, 42, 0.26);
+  box-shadow: var(--theme-shadow-card);
   backdrop-filter: blur(18px);
 }
 
@@ -389,7 +386,9 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   color: var(--color-text);
-  font-size: 0.95rem;
+  font-size: var(--theme-font-size-body);
+  min-height: var(--theme-control-height-md);
+  border-radius: var(--theme-radius-control);
   outline: none;
 }
 
@@ -416,21 +415,15 @@ onUnmounted(() => {
 .nie-list-mobile-toolbar__filter {
   width: 3.5rem;
   height: 3.5rem;
-  border-radius: 1.2rem;
-  box-shadow:
-    0 22px 44px -30px rgba(15, 23, 42, 0.42),
-    0 10px 22px -22px rgba(15, 23, 42, 0.24);
+  border-radius: var(--theme-radius-panel);
+  box-shadow: var(--theme-shadow-card);
 }
 
 .nie-list-mobile-toolbar__back {
   border: 1px solid
     color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-primary-dark)
-  );
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--theme-color-on-brand);
 }
 
 .nie-list-mobile-toolbar__filter {
@@ -445,7 +438,7 @@ onUnmounted(() => {
   width: 2rem;
   height: 2rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--theme-radius-pill);
   background: var(--color-surface-alt, var(--color-surface));
   color: var(--color-text-muted);
   box-shadow: none;
@@ -491,12 +484,12 @@ onUnmounted(() => {
   height: 1.15rem;
   align-items: center;
   justify-content: center;
-  padding: 0 0.3rem;
-  border-radius: 999px;
+  padding: var(--theme-space-0) var(--theme-space-1);
+  border-radius: var(--theme-radius-pill);
   background: var(--color-primary);
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 700;
+  color: var(--theme-color-on-brand);
+  font-size: var(--theme-font-size-caption);
+  font-weight: var(--theme-font-weight-bold);
   line-height: 1;
 }
 

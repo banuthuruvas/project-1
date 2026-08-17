@@ -114,7 +114,7 @@ State transitions are enforced in the Service layer:
 \`\`\`csharp
 // In YourEntityService.cs
 public async Task<ApiResponse<YourEntityDto>> TransitionStateAsync(
-int id, string newStatus, string? reason = null)
+Guid id, string newStatus, string? reason = null)
 {
 var entity = await \_dbContext.YourEntities.FindAsync(id);
 if (entity == null) return ApiResponse<YourEntityDto>.NotFound();

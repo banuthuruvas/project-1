@@ -22,6 +22,8 @@ const STORAGE_KEYS = {
   scenario: "nie_template_theme_scenario",
   layout: "nie_template_theme_layout",
   preference: "nie_template_theme_preference",
+  radius: "nie_template_theme_radius",
+  motion: "nie_template_theme_motion",
 };
 
 const defaultConfig: AppThemeConfig = {
@@ -87,6 +89,18 @@ function clampPreference(value: unknown): ThemePreference {
     : appConfig.value.defaultPreference ?? "light";
 }
 
+function clampRadius(value: unknown): ThemeRadius {
+  return value === "rounded" || value === "sharp" || value === "soft"
+    ? value
+    : appConfig.value.defaultRadius ?? "soft";
+}
+
+function clampMotion(value: unknown): ThemeMotion {
+  return value === "reduced" || value === "expressive"
+    ? value
+    : appConfig.value.defaultMotion ?? "expressive";
+}
+
 function clampScenario(value: unknown): AppScenario {
   if (
     typeof value === "string" &&
@@ -143,6 +157,8 @@ function persistState(): void {
     localStorage.setItem(STORAGE_KEYS.scenario, scenario.value);
     localStorage.setItem(STORAGE_KEYS.layout, layoutVariant.value);
     localStorage.setItem(STORAGE_KEYS.preference, themePreference.value);
+    localStorage.setItem(STORAGE_KEYS.radius, radius.value);
+    localStorage.setItem(STORAGE_KEYS.motion, motion.value);
   } catch {
     // Ignore storage write failures.
   }
@@ -188,6 +204,7 @@ function applyTokenBundle(bundle: ThemeTokenBundle): void {
   root.style.setProperty("--theme-color-text-muted", colors.text.muted);
   root.style.setProperty("--theme-color-text-soft", colors.text.soft);
   root.style.setProperty("--theme-color-text-inverse", colors.text.inverse);
+  root.style.setProperty("--theme-color-on-brand", colors.brandContrast);
 
   root.style.setProperty("--theme-color-border-subtle", colors.border.subtle);
   root.style.setProperty("--theme-color-border-default", colors.border.default);
@@ -319,6 +336,8 @@ function applyTheme(): void {
         scenario: scenario.value,
         layoutVariant: layoutVariant.value,
         preference: themePreference.value,
+        radius: radius.value,
+        motion: motion.value,
       },
     }),
   );
@@ -334,6 +353,8 @@ function readStoredState(): void {
     preset.value,
   );
   themePreference.value = clampPreference(readStorage(STORAGE_KEYS.preference));
+  radius.value = clampRadius(readStorage(STORAGE_KEYS.radius));
+  motion.value = clampMotion(readStorage(STORAGE_KEYS.motion));
   mode.value =
     themePreference.value === "system"
       ? getSystemTheme()
@@ -431,6 +452,8 @@ export function initTheme(config?: AppThemeConfig): void {
   preset.value = clampPreset(preset.value);
   scenario.value = clampScenario(scenario.value);
   density.value = clampDensity(density.value);
+  radius.value = clampRadius(radius.value);
+  motion.value = clampMotion(motion.value);
   layoutVariant.value = clampLayout(layoutVariant.value, scenario.value, preset.value);
 
   if (!appConfig.value.allowedPresets.includes(preset.value)) {
@@ -440,14 +463,26 @@ export function initTheme(config?: AppThemeConfig): void {
   applyTheme();
 }
 
-watch([mode, preset, density, scenario, layoutVariant, themePreference], () => {
-  if (syncingFromSystem) {
-    return;
-  }
+watch(
+  [
+    mode,
+    preset,
+    density,
+    scenario,
+    layoutVariant,
+    themePreference,
+    radius,
+    motion,
+  ],
+  () => {
+    if (syncingFromSystem) {
+      return;
+    }
 
-  persistState();
-  applyTheme();
-});
+    persistState();
+    applyTheme();
+  },
+);
 
 export const activeManifest = computed<ThemeManifest>(() =>
   getThemeManifest(preset.value),

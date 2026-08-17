@@ -18,7 +18,7 @@ The requirements documentation captures WHAT the application should do, WHO uses
 
 ### Option A: AI-Assisted (Recommended)
 
-1. Open `.ai/README.md` and have your AI agent follow the AIDLC inception steps in `.ai/common/05-aidlc-process.md`
+1. Open `.ai/README.md`, then use `.ai/IMPLEMENT.md` with the objective and resolve applicable numbered policy rules before implementation.
 2. Provide your 1–3 paragraph project description
 3. AI will ask discovery questions — answer them thoroughly
 4. AI generates the full `requirements/` folder structure

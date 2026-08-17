@@ -21,16 +21,16 @@ defineProps<Props>();
     <li
       v-for="(step, index) in steps"
       :key="step.id"
-      class="flex items-start gap-3 rounded-2xl border border-secondary-200 bg-white/95 p-4 shadow-sm dark:border-secondary-700 dark:bg-secondary-900/90"
+      class="flex items-start gap-3 rounded-2xl border border-secondary-200 bg-white/95 p-4 shadow-[var(--theme-shadow-soft)] dark:border-secondary-700 dark:bg-secondary-900/90"
       :class="step.id === activeStep ? 'ring-2 ring-primary-500/40' : ''"
     >
       <div
         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-bold"
         :class="
           step.id === activeStep
-            ? 'bg-primary-600 text-white dark:bg-primary-500'
+            ? 'bg-primary-600 text-on-brand dark:bg-primary-600'
             : index < steps.findIndex((item) => item.id === activeStep)
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+              ? 'bg-success-100 text-success-700 dark:bg-success-950/30 dark:text-success-300'
               : 'bg-secondary-100 text-secondary-500 dark:bg-secondary-800 dark:text-secondary-300'
         "
       >
@@ -55,7 +55,7 @@ defineProps<Props>();
 <style scoped>
 .wizard-stepper {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--theme-space-3);
 }
 
 @media (min-width: 1024px) {

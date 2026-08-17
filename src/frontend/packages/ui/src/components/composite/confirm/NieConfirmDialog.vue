@@ -13,9 +13,12 @@ export interface ConfirmOptions {
 
 interface Props {
   options: ConfirmOptions | null;
+  loading?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+});
 
 const emit = defineEmits<{
   confirm: [];
@@ -44,6 +47,9 @@ const handleModalValueChange = (value: boolean) => {
     :model-value="isOpen"
     :title="options?.title || 'Confirm'"
     size="sm"
+    :close-on-overlay="!loading"
+    :close-on-escape="!loading"
+    :show-close="!loading"
     @update:model-value="handleModalValueChange"
   >
     <p class="text-secondary-600 dark:text-secondary-400">
@@ -52,11 +58,12 @@ const handleModalValueChange = (value: boolean) => {
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <NieButton variant="ghost" @click="handleCancel">
+        <NieButton variant="ghost" :disabled="loading" @click="handleCancel">
           {{ options?.cancelText || 'Cancel' }}
         </NieButton>
         <NieButton
           :variant="options?.variant || 'primary'"
+          :loading="loading"
           @click="handleConfirm"
         >
           {{ options?.confirmText || 'Confirm' }}

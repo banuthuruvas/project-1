@@ -56,7 +56,7 @@
       "name": "Auth API (Debug)",
       "type": "dotnet",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/src/backend/Auth/Auth.csproj",
+      "projectPath": "${workspaceFolder}/src/backend/Hosts/Auth/Auth.csproj",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5001"
@@ -71,7 +71,7 @@
       "name": "Main API (Debug)",
       "type": "dotnet",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/src/backend/API/API.csproj",
+      "projectPath": "${workspaceFolder}/src/backend/Hosts/Api/Api.csproj",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5002"
@@ -86,7 +86,7 @@
       "name": "Auth API (Hot Reload)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "dotnet watch run --project src/backend/Auth/Auth.csproj",
+      "command": "dotnet watch run --project src/backend/Hosts/Auth/Auth.csproj",
       "cwd": "${workspaceFolder}",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
@@ -103,7 +103,7 @@
       "name": "Main API (Hot Reload)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "dotnet watch run --project src/backend/API/API.csproj",
+      "command": "dotnet watch run --project src/backend/Hosts/Api/Api.csproj",
       "cwd": "${workspaceFolder}",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
@@ -132,7 +132,7 @@
       "name": "Auth API (Run)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "dotnet run --project src/backend/Auth/Auth.csproj",
+      "command": "dotnet run --project src/backend/Hosts/Auth/Auth.csproj",
       "cwd": "${workspaceFolder}",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
@@ -148,7 +148,7 @@
       "name": "Main API (Run)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "dotnet run --project src/backend/API/API.csproj",
+      "command": "dotnet run --project src/backend/Hosts/Api/Api.csproj",
       "cwd": "${workspaceFolder}",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",

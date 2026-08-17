@@ -38,8 +38,8 @@ return Ok(ApiResponse<EntityDto>.Ok(dto, "Entity created successfully"));
 ### GET by ID
 
 ```csharp
-[HttpGet("{id}")]
-public async Task<ActionResult<YourEntityDto>> Get(int id)
+[HttpGet("{id:guid}")]
+public async Task<ActionResult<YourEntityDto>> Get(Guid id)
 {
     var item = await _service.GetByIdAsync(id);
     if (item == null)
@@ -54,7 +54,7 @@ public async Task<ActionResult<YourEntityDto>> Get(int id)
 [HttpPost]
 public async Task<ActionResult<YourEntityDto>> Edit([FromBody] YourEntityDto dto)
 {
-    if (dto.Id <= 0)
+    if (dto.Id == Guid.Empty)
         return BadRequest("Invalid ID");
 
     var existing = await _service.GetByIdAsync(dto.Id);
@@ -70,8 +70,8 @@ public async Task<ActionResult<YourEntityDto>> Edit([FromBody] YourEntityDto dto
 ### Delete
 
 ```csharp
-[HttpPost("{id}")]
-public async Task<ActionResult> Delete(int id)
+[HttpDelete("{id:guid}")]
+public async Task<ActionResult> Delete(Guid id)
 {
     var result = await _service.DeleteAsync(id);
     if (!result)

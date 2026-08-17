@@ -35,28 +35,32 @@ const icons = {
 };
 
 const iconClasses = {
-  success: "text-green-500",
-  error: "text-red-500",
-  warning: "text-yellow-500",
-  info: "text-blue-500",
+  success: "text-success-500",
+  error: "text-danger-500",
+  warning: "text-warning-500",
+  info: "text-info-500",
 };
 
 const bgClasses = {
-  success: "bg-green-50 dark:bg-green-900/20",
-  error: "bg-red-50 dark:bg-red-900/20",
-  warning: "bg-yellow-50 dark:bg-yellow-900/20",
-  info: "bg-blue-50 dark:bg-blue-900/20",
+  success: "bg-success-50 dark:bg-success-900/20",
+  error: "bg-danger-50 dark:bg-danger-900/20",
+  warning: "bg-warning-50 dark:bg-warning-900/20",
+  info: "bg-info-50 dark:bg-info-900/20",
 };
 </script>
 
 <template>
-  <div class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full">
+  <div
+    class="fixed left-4 right-4 top-4 z-50 flex max-w-sm flex-col gap-2 sm:left-auto sm:w-full"
+  >
     <TransitionGroup name="toast">
       <div
         v-for="toast in toasts"
         :key="toast.id"
+        :role="toast.type === 'error' ? 'alert' : 'status'"
+        :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
         :class="[
-          'rounded-lg p-4 shadow-lg border',
+          'rounded-lg p-4 shadow-[var(--theme-shadow-float)] border',
           bgClasses[toast.type],
           'border-secondary-200 dark:border-secondary-700',
         ]"
@@ -79,6 +83,7 @@ const bgClasses = {
           </div>
           <button
             type="button"
+            :aria-label="`Dismiss ${toast.type} notification`"
             class="flex-shrink-0 rounded-lg p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300"
             @click="emit('dismiss', toast.id)"
           >

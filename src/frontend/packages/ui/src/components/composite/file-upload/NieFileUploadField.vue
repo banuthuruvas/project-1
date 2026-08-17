@@ -251,6 +251,7 @@ const handleDrop = (event: DragEvent) => {
 
         <button
           type="button"
+          :aria-label="`Remove ${file.name}`"
           class="rounded-lg p-1 text-secondary-400 transition hover:bg-secondary-100 hover:text-secondary-600 dark:hover:bg-secondary-800 dark:hover:text-secondary-300"
           @click.stop="removeFile(file.id)"
         >

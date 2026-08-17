@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const headerClasses = computed(() =>
   cn(
-    "rounded-2xl border border-secondary-200 bg-white/90 shadow-sm ring-1 ring-white/60 backdrop-blur dark:border-secondary-700 dark:bg-secondary-900/80 dark:ring-secondary-800/80",
-    "bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.12),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.08),transparent_26%)]",
+    "rounded-2xl border border-secondary-200 bg-white/90 shadow-[var(--theme-shadow-soft)] ring-1 ring-white/60 backdrop-blur dark:border-secondary-700 dark:bg-secondary-900/80 dark:ring-secondary-800/80",
+    "nie-page-header",
     props.compact ? "p-5" : "p-6 md:p-8",
     props.class,
   ),
@@ -30,7 +30,7 @@ const headerClasses = computed(() =>
       <div class="min-w-0 space-y-3">
         <p
           v-if="eyebrow"
-          class="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600 dark:text-primary-300"
+          class="text-xs font-semibold uppercase tracking-wide text-primary-600 dark:text-primary-300"
         >
           {{ eyebrow }}
         </p>
@@ -63,3 +63,19 @@ const headerClasses = computed(() =>
     </div>
   </section>
 </template>
+
+<style scoped>
+.nie-page-header {
+  background-image:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--theme-color-brand-600) 12%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      color-mix(in srgb, var(--theme-color-info-500) 8%, transparent),
+      transparent 26%
+    );
+}
+</style>

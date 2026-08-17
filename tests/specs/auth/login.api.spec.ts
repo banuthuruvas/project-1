@@ -4,7 +4,7 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { createAuthApiClient, ApiClient } from "../fixtures/api-client";
+import { createApiClient, createAuthApiClient, ApiClient } from "../fixtures/api-client";
 import { TestConfig, ApiEndpoints } from "../fixtures/test-config";
 import { getTestUser, hasTestUsers } from "../fixtures/test-users";
 
@@ -22,8 +22,8 @@ test.describe("Auth API - Login", () => {
 
   test("should return 401 for invalid credentials", async () => {
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: "invaliduser",
-      password: "invalidpassword",
+      userid: "invaliduser",
+      pd: "invalidpassword",
     });
 
     expect(response.status).toBe(401);
@@ -32,8 +32,8 @@ test.describe("Auth API - Login", () => {
 
   test("should return 400 or 401 for empty credentials", async () => {
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: "",
-      password: "",
+      userid: "",
+      pd: "",
     });
 
     expect([400, 401]).toContain(response.status);
@@ -41,8 +41,8 @@ test.describe("Auth API - Login", () => {
 
   test("should return 400 or 401 for missing password", async () => {
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: "testuser",
-      password: "",
+      userid: "testuser",
+      pd: "",
     });
 
     expect([400, 401]).toContain(response.status);
@@ -50,8 +50,8 @@ test.describe("Auth API - Login", () => {
 
   test("should return 400 or 401 for missing username", async () => {
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: "",
-      password: "testpassword",
+      userid: "",
+      pd: "testpassword",
     });
 
     expect([400, 401]).toContain(response.status);
@@ -62,8 +62,8 @@ test.describe("Auth API - Login", () => {
 
     const user = getTestUser();
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: user.username,
-      password: user.password,
+      userid: user.username,
+      pd: user.password,
     });
 
     expect(response.status).toBe(200);
@@ -78,8 +78,8 @@ test.describe("Auth API - Login", () => {
 
     const user = getTestUser();
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: user.username,
-      password: user.password,
+      userid: user.username,
+      pd: user.password,
     });
 
     expect(response.status).toBe(200);
@@ -92,8 +92,8 @@ test.describe("Auth API - Login", () => {
     const startTime = Date.now();
 
     await client.post(ApiEndpoints.auth.login, {
-      username: user.username || "testuser",
-      password: user.password || "testpassword",
+      userid: user.username || "testuser",
+      pd: user.password || "testpassword",
     });
 
     const responseTime = Date.now() - startTime;
@@ -103,8 +103,8 @@ test.describe("Auth API - Login", () => {
 
   test("should handle special characters in credentials", async () => {
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: "user@test.com",
-      password: "p@ssw0rd!#$%",
+      userid: "user@test.com",
+      pd: "p@ssw0rd!#$%",
     });
 
     // Should not throw an error, just return unauthorized
@@ -114,8 +114,8 @@ test.describe("Auth API - Login", () => {
   test("should handle very long credentials gracefully", async () => {
     const longString = "a".repeat(1000);
     const response = await client.post(ApiEndpoints.auth.login, {
-      username: longString,
-      password: longString,
+      userid: longString,
+      pd: longString,
     });
 
     // Should handle gracefully without server error
@@ -141,8 +141,8 @@ test.describe("Auth API - Session", () => {
     // First login to get a session
     const user = getTestUser();
     const loginResponse = await client.post(ApiEndpoints.auth.login, {
-      username: user.username,
-      password: user.password,
+      userid: user.username,
+      pd: user.password,
     });
 
     if (loginResponse.status !== 200) {
@@ -177,8 +177,8 @@ test.describe("Auth API - Session", () => {
     // First login to get a session
     const user = getTestUser();
     const loginResponse = await client.post(ApiEndpoints.auth.login, {
-      username: user.username,
-      password: user.password,
+      userid: user.username,
+      pd: user.password,
     });
 
     if (loginResponse.status !== 200) {
@@ -196,5 +196,41 @@ test.describe("Auth API - Session", () => {
     const logoutResponse = await client.post(ApiEndpoints.auth.logout, {});
 
     expect([200, 204]).toContain(logoutResponse.status);
+  });
+
+  test("should reject old session token after logout", async () => {
+    test.skip(!hasTestUsers(), "No test users configured");
+
+    const user = getTestUser();
+    const loginResponse = await client.post(ApiEndpoints.auth.login, {
+      userid: user.username,
+      pd: user.password,
+    });
+
+    if (loginResponse.status !== 200) {
+      test.skip(true, "Login failed, cannot test logout revocation");
+      return;
+    }
+
+    const sessionToken = loginResponse.data.sessionToken;
+    const userId = loginResponse.data.userId;
+
+    const mainClient = createApiClient();
+    await mainClient.init();
+    mainClient.setSession(sessionToken, userId);
+
+    try {
+      const beforeLogout = await mainClient.get(ApiEndpoints.vendor.getAll);
+      expect([200, 204]).toContain(beforeLogout.status);
+
+      client.setSession(sessionToken, userId);
+      const logoutResponse = await client.post(ApiEndpoints.auth.logout, {});
+      expect([200, 204]).toContain(logoutResponse.status);
+
+      const afterLogout = await mainClient.get(ApiEndpoints.vendor.getAll);
+      expect([401, 403]).toContain(afterLogout.status);
+    } finally {
+      await mainClient.dispose();
+    }
   });
 });

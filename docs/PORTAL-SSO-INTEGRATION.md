@@ -258,9 +258,23 @@ The exchange API response must remain the authoritative source for:
 
 ### Step 6: Enable the auth frontend SSO entry point
 
-For the auth frontend, set:
+For the auth frontend, enable the runtime SSO flag through the deployed page
+configuration instead of a Vite `.env` file:
 
-- `VITE_PORTAL_SSO_ENABLED=true`
+```html
+<meta name="nie:portalSsoEnabled" content="true">
+```
+
+or:
+
+```html
+<script>
+  window.__NIE_APPLICATION_CONFIG__ = {
+    ...(window.__NIE_APPLICATION_CONFIG__ ?? {}),
+    portalSsoEnabled: true,
+  };
+</script>
+```
 
 Validate that:
 
@@ -419,44 +433,11 @@ Before go-live, both sides should agree on the following values.
 
 ---
 
-## Windows and Linux Key Generation
+## Key Generation and Local Verification
 
-Use organization-approved secure tooling for production keys whenever available.
+Use organization-approved secure tooling for production keys. Development key generation, portal callback simulation, and mock exchange utilities are maintained outside application repositories by the portal/platform team.
 
-If the internal reference tools are being used temporarily during development:
-
-### Windows
-
-```powershell
-./tools/portal-sso-sender/scripts/generate-dev-keys.ps1
-```
-
-### Linux
-
-```bash
-./tools/portal-sso-sender/scripts/generate-dev-keys.sh
-```
-
-These commands are for controlled development and testing. For production, generate keys in an approved secure environment and store them outside source control.
-
----
-
-## Local Verification Workflow
-
-If the internal reference tools are available locally, validate the full flow with:
-
-```powershell
-./tools/portal-sso-sender/scripts/run-local-sso-test.ps1
-```
-
-That local verification proves:
-
-- `SsoStart` creates a pending login
-- portal-side signing and encryption are accepted
-- Auth decrypts and validates the callback
-- Auth calls the exchange API
-- Auth creates the final session
-- Auth `Verify` succeeds with the issued session token
+For local verification, request the approved external Portal SSO test harness or manually replay a signed/encrypted callback produced by that harness. Application repositories should validate only the application-side contract, configuration, and callback handling.
 
 ---
 

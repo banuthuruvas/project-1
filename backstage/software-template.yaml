@@ -76,23 +76,27 @@ spec:
             - "Backend-only (.NET 10 API)"
           default: full
         include_chat:
-          title: AI Chatbot (task 0010)
+          title: AI Chatbot
           type: boolean
           default: false
         include_workflow:
-          title: Workflow Engine (task 0011)
+          title: Workflow Engine
           type: boolean
           default: true
         include_pdf:
-          title: PDF Generation (task 0012)
+          title: PDF Generation
           type: boolean
           default: false
         include_storage:
-          title: File Storage (Local + S3, task 0013)
+          title: File Storage (Local + S3)
           type: boolean
           default: true
         include_myinfo:
-          title: Singpass MyInfo (task 0014, requires task 0006)
+          title: Singpass MyInfo
+          type: boolean
+          default: false
+        include_service_integration:
+          title: RabbitMQ + gRPC service integration
           type: boolean
           default: false
 
@@ -127,7 +131,7 @@ spec:
           - bash
           - -lc
           - >-
-            copier copy --trust --defaults --vcs-ref=HEAD
+            copier copy --defaults --vcs-ref=HEAD
             --data project_name=${{ parameters.project_name }}
             --data project_title='${{ parameters.project_title }}'
             --data organization=${{ parameters.organization }}
@@ -138,6 +142,7 @@ spec:
             --data include_pdf=${{ parameters.include_pdf }}
             --data include_storage=${{ parameters.include_storage }}
             --data include_myinfo=${{ parameters.include_myinfo }}
+            --data include_service_integration=${{ parameters.include_service_integration }}
             ./.copier-source ./out
 
     - id: publish
@@ -185,4 +190,4 @@ spec:
 # Don't run Backstage just for this template. It's worthwhile when:
 #   - You operate ~50+ services and need a portal + ownership graph + tech radar.
 #   - You want one onboarding surface for many templates (this is one of them).
-# Until then, the Copier CLI flow described in tools/README.md is enough.
+# Until then, the Copier CLI flow described in README.md is enough.

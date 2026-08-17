@@ -47,7 +47,7 @@ end
     end
 
     Deploy -->|docker-compose up| Docker
-    User[👤 Users] -->|HTTPS| Nginx
+    User[ðŸ‘¤ Users] -->|HTTPS| Nginx
     Nginx -->|/api/*| APIContainer
     Nginx -->|/auth/*| AuthContainer
     APIContainer --> PGContainer
@@ -96,7 +96,7 @@ File: `build/docker-compose.yml`
 | ConnectionStrings:DefaultConnection | PostgreSQL connection  | Host=localhost;... | Via Docker env |
 | ConnectionStrings:Valkey            | Valkey connection      | localhost:6379     | valkey:6379    |
 | Jwt:Secret                          | JWT signing key        | [dev key]          | [secure key]   |
-| Hangfire:Enabled                    | Enable background jobs | true               | true           |
+| TickerQ:Enabled                    | Enable background jobs | true               | true           |
 | [Custom config]                     | [Description]          | [Default]          | [Production]   |
 
 ### Auth API (appsettings.json)
@@ -138,7 +138,7 @@ H --> J[Push to Registry]
 J --> K[Deploy to Server]
 K --> L[Health Check]
 L --> M{Healthy?}
-M -->|Yes| N[✅ Deployed]
+M -->|Yes| N[âœ… Deployed]
 M -->|No| O[Rollback]
 \`\`\`
 
@@ -207,11 +207,11 @@ M -->|No| O[Rollback]
 
 ## Tips
 
-1. **Start with docker-compose.yml** — It's the source of truth for your deployment
-2. **Document ALL environment variables** — Missing config is the #1 deployment issue
-3. **Include rollback procedures** — Every deployment should have a rollback plan
-4. **Keep build/ configs version-controlled** — Never store production secrets in git
-5. **Health checks are mandatory** — Every service must have a health endpoint
+1. **Start with docker-compose.yml** â€” It's the source of truth for your deployment
+2. **Document ALL environment variables** â€” Missing config is the #1 deployment issue
+3. **Include rollback procedures** â€” Every deployment should have a rollback plan
+4. **Keep build/ configs version-controlled** â€” Never store production secrets in git
+5. **Health checks are mandatory** â€” Every service must have a health endpoint
 
 ## Review Checklist
 
@@ -224,4 +224,3 @@ M -->|No| O[Rollback]
 - [ ] Health checks and monitoring configured
 - [ ] Logging strategy defined
 - [ ] Rollback procedure documented
-

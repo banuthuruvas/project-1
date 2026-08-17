@@ -23,10 +23,10 @@
         "ms-playwright.playwright"
       ],
       "settings": {
-        "dotnet.defaultSolution": "src/backend/NieTemplate.sln"
+        "dotnet.defaultSolution": "src/backend/Backend.sln"
       }
     }
   },
   "postCreateCommand": "cd src/backend && dotnet restore && cd ../../src/frontend && npm i -g pnpm@10 && pnpm install",
-  "forwardPorts": [5001, 5002, 8001, 8002, 5432, 6379]
+  "forwardPorts": [5001, 5002, 8001, 8002, 5432, 6379, 4566]
 }

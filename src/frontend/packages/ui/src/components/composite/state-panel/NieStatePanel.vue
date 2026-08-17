@@ -6,6 +6,7 @@ import {
   InboxIcon,
   InformationCircleIcon,
 } from "@heroicons/vue/24/outline";
+import NieLoaderSymbol from "../loading/NieLoaderSymbol.vue";
 import { cn } from "../../../lib/utils";
 
 export type StatePanelVariant =
@@ -32,14 +33,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const wrapperClasses = computed(() =>
   cn(
-    "rounded-2xl border bg-white/95 text-center shadow-sm dark:bg-secondary-900/90",
+    "rounded-2xl border bg-white/95 text-center shadow-[var(--theme-shadow-soft)] dark:bg-secondary-900/90",
     props.compact ? "px-5 py-6" : "px-6 py-10",
     props.variant === "error" &&
-      "border-red-200 dark:border-red-900/60 dark:bg-red-950/20",
+      "border-danger-200 dark:border-danger-900/60 dark:bg-danger-950/20",
     props.variant === "warning" &&
-      "border-amber-200 dark:border-amber-900/60 dark:bg-amber-950/20",
+      "border-warning-200 dark:border-warning-900/60 dark:bg-warning-950/20",
     props.variant === "success" &&
-      "border-emerald-200 dark:border-emerald-900/60 dark:bg-emerald-950/20",
+      "border-success-200 dark:border-success-900/60 dark:bg-success-950/20",
     (props.variant === "info" ||
       props.variant === "empty" ||
       props.variant === "loading") &&
@@ -65,11 +66,11 @@ const iconComponent = computed(() => {
 const iconWrapperClasses = computed(() => {
   switch (props.variant) {
     case "success":
-      return "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300";
+      return "bg-success-100 text-success-600 dark:bg-success-900/30 dark:text-success-300";
     case "warning":
-      return "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300";
+      return "bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-300";
     case "error":
-      return "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300";
+      return "bg-danger-100 text-danger-600 dark:bg-danger-900/30 dark:text-danger-300";
     default:
       return "bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-300";
   }
@@ -85,10 +86,12 @@ const iconWrapperClasses = computed(() => {
           iconWrapperClasses,
         ]"
       >
-        <div
+        <NieLoaderSymbol
           v-if="variant === 'loading'"
-          class="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent"
-        ></div>
+          size="md"
+          tone="current"
+          label="Loading"
+        />
         <component v-else :is="iconComponent" class="h-7 w-7" />
       </div>
 

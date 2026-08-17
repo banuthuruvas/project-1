@@ -45,7 +45,7 @@ const hasActiveControls = computed(() => {
 
 const wrapperClasses = computed(() =>
   cn(
-    "rounded-2xl border border-secondary-200 bg-white/90 p-4 shadow-sm ring-1 ring-white/60 backdrop-blur dark:border-secondary-700 dark:bg-secondary-900/80 dark:ring-secondary-800/80",
+    "rounded-2xl border border-secondary-200 bg-white/90 p-4 shadow-[var(--theme-shadow-soft)] ring-1 ring-white/60 backdrop-blur dark:border-secondary-700 dark:bg-secondary-900/80 dark:ring-secondary-800/80",
     props.class,
   ),
 );
@@ -79,7 +79,8 @@ const handleSearch = (event: Event) => {
               :value="searchTerm"
               type="search"
               :placeholder="searchPlaceholder"
-              class="w-full rounded-xl border border-secondary-300 bg-white py-2 pl-10 pr-4 text-sm text-secondary-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-800 dark:text-secondary-50 dark:placeholder:text-secondary-500"
+              :aria-label="searchPlaceholder"
+              class="min-h-11 w-full rounded-xl border border-secondary-300 bg-white py-2 pl-10 pr-4 text-sm text-secondary-900 shadow-[var(--theme-shadow-soft)] outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-800 dark:text-secondary-50 dark:placeholder:text-secondary-500"
               @input="handleSearch"
             />
           </div>
@@ -89,7 +90,6 @@ const handleSearch = (event: Event) => {
               v-for="filter in filters"
               :key="filter.value"
               :variant="activeFilter === filter.value ? 'primary' : 'outline'"
-              size="sm"
               @click="emit('update:activeFilter', filter.value)"
             >
               <span>{{ filter.label }}</span>
@@ -109,7 +109,6 @@ const handleSearch = (event: Event) => {
           <NieButton
             v-if="showReset && hasActiveControls"
             variant="ghost"
-            size="sm"
             @click="handleReset"
           >
             <XMarkIcon class="h-4 w-4" />

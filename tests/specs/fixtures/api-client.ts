@@ -102,6 +102,7 @@ export class ApiClient {
     };
 
     if (this.sessionToken) {
+      headers["X-Session-Id"] = this.sessionToken;
       // Adjust cookie names based on your session implementation
       headers["Cookie"] =
         `SessionToken=${this.sessionToken}; UserId=${this.userId}`;

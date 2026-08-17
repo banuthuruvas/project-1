@@ -1,0 +1,17 @@
+.git/
+.github/
+.vscode/
+temp/
+
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/out/
+
+**/*.trx
+**/*.log
+**/*.md
+**/*.ps1
+**/*.cmd
+**/*.sh

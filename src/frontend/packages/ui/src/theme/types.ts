@@ -74,6 +74,7 @@ export interface ThemeStatusTokens {
 
 export interface ThemeColorTokens {
   brand: ThemeScale;
+  brandContrast: string;
   neutral: ThemeScale;
   surface: ThemeSurfaceTokens;
   text: ThemeTextTokens;

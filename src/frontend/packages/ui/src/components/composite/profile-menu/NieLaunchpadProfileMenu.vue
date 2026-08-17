@@ -227,38 +227,35 @@ onUnmounted(() => {
           <div class="nie-topbar-section-header">
             <p class="nie-topbar-label">Theme</p>
           </div>
-          <div class="nie-topbar-theme-grid">
+          <div class="nie-topbar-theme-grid nie-topbar-theme-grid--compact">
             <button
               v-for="option in themeOptions"
               :key="option.value"
               type="button"
-              class="nie-topbar-choice"
+              class="nie-topbar-choice nie-topbar-choice--compact"
               :class="{ 'nie-topbar-choice--active': mode === option.value }"
               @click="emit('set-mode', option.value)"
             >
               {{ option.label }}
             </button>
           </div>
-        </section>
-
-        <section v-if="palettes.length" class="nie-profile-section">
-          <div class="nie-topbar-section-header">
-            <p class="nie-topbar-label">Palette</p>
-          </div>
-          <div class="nie-topbar-palette-grid">
+          <div v-if="palettes.length" class="nie-topbar-palette-row">
             <button
               v-for="option in palettes"
               :key="option.id"
               type="button"
-              class="nie-topbar-choice nie-topbar-choice--palette"
-              :class="{ 'nie-topbar-choice--active': palette === option.id }"
+              class="nie-topbar-palette-dot"
+              :class="{
+                'nie-topbar-palette-dot--active': palette === option.id,
+              }"
+              :aria-label="option.name"
+              :title="option.name"
               @click="emit('set-palette', option.id)"
             >
               <span
-                class="nie-topbar-swatch"
+                class="nie-topbar-palette-dot__swatch"
                 :style="{ backgroundColor: option.swatch }"
               />
-              <span>{{ option.name }}</span>
             </button>
           </div>
         </section>
@@ -366,12 +363,14 @@ onUnmounted(() => {
               <div class="nie-topbar-section-header">
                 <p class="nie-topbar-label">Theme</p>
               </div>
-              <div class="nie-topbar-theme-grid nie-topbar-theme-grid--mobile">
+              <div
+                class="nie-topbar-theme-grid nie-topbar-theme-grid--mobile nie-topbar-theme-grid--compact"
+              >
                 <button
                   v-for="option in themeOptions"
                   :key="option.value"
                   type="button"
-                  class="nie-topbar-choice"
+                  class="nie-topbar-choice nie-topbar-choice--compact"
                   :class="{
                     'nie-topbar-choice--active': mode === option.value,
                   }"
@@ -380,27 +379,21 @@ onUnmounted(() => {
                   {{ option.label }}
                 </button>
               </div>
-            </section>
-
-            <section v-if="palettes.length" class="nie-profile-section">
-              <div class="nie-topbar-section-header">
-                <p class="nie-topbar-label">Palette</p>
-              </div>
-              <div class="nie-mobile-palette-row">
+              <div v-if="palettes.length" class="nie-topbar-palette-row">
                 <button
                   v-for="option in palettes"
                   :key="option.id"
                   type="button"
-                  class="nie-mobile-palette-button"
+                  class="nie-topbar-palette-dot"
                   :class="{
-                    'nie-mobile-palette-button--active': palette === option.id,
+                    'nie-topbar-palette-dot--active': palette === option.id,
                   }"
                   :aria-label="option.name"
                   :title="option.name"
                   @click="emit('set-palette', option.id)"
                 >
                   <span
-                    class="nie-mobile-palette-swatch"
+                    class="nie-topbar-palette-dot__swatch"
                     :style="{ backgroundColor: option.swatch }"
                   />
                 </button>
@@ -432,22 +425,18 @@ onUnmounted(() => {
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-primary-dark)
-  );
-  color: #fff;
-  font-size: 0.98rem;
-  font-weight: 700;
-  box-shadow: 0 8px 20px -18px rgba(15, 23, 42, 0.55);
+  border-radius: var(--theme-radius-pill);
+  background: var(--color-primary);
+  color: var(--theme-color-on-brand);
+  font-size: var(--theme-font-size-body);
+  font-weight: var(--theme-font-weight-bold);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .nie-launchpad-avatar--large {
   width: 3rem;
   height: 3rem;
-  border-radius: 1.1rem;
+  border-radius: var(--theme-radius-panel);
 }
 
 .nie-launchpad-popover {
@@ -456,13 +445,11 @@ onUnmounted(() => {
   right: 0;
   z-index: 120;
   width: min(24rem, calc(100vw - 2rem));
-  padding: 0.5rem 0.9rem 0.7rem;
+  padding: var(--theme-space-2) var(--theme-space-4) var(--theme-space-3);
   border: 1px solid var(--color-border);
-  border-radius: 1.25rem;
+  border-radius: var(--theme-radius-panel);
   background: color-mix(in srgb, var(--color-surface) 95%, transparent);
-  box-shadow:
-    0 30px 60px -30px rgba(15, 23, 42, 0.42),
-    0 18px 30px -24px rgba(15, 23, 42, 0.28);
+  box-shadow: var(--theme-shadow-float);
   backdrop-filter: blur(20px);
 }
 
@@ -472,7 +459,7 @@ onUnmounted(() => {
 }
 
 .nie-profile-section {
-  padding: 1rem 0.15rem;
+  padding: var(--theme-space-3) var(--theme-space-1);
 }
 
 .nie-profile-section + .nie-profile-section {
@@ -480,67 +467,67 @@ onUnmounted(() => {
 }
 
 .nie-profile-section--identity {
-  padding-top: 0.35rem;
+  padding-top: var(--theme-space-1);
 }
 
 .nie-profile-section--actions {
-  padding-top: 1rem;
-  padding-bottom: 0.15rem;
+  padding-top: var(--theme-space-3);
+  padding-bottom: var(--theme-space-1);
 }
 
 .nie-profile-card {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: var(--theme-space-3);
 }
 
 .nie-profile-card__name {
   margin: 0;
   color: var(--color-text);
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: var(--theme-font-size-body);
+  font-weight: var(--theme-font-weight-bold);
 }
 
 .nie-profile-card__email {
-  margin: 0.25rem 0 0;
+  margin: var(--theme-space-1) 0 0;
   color: var(--color-text-muted);
-  font-size: 0.78rem;
+  font-size: var(--theme-font-size-label);
   word-break: break-word;
 }
 
 .nie-profile-card__role {
-  margin: 0.32rem 0 0;
+  margin: var(--theme-space-1) 0 0;
   color: var(--color-primary);
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: var(--theme-font-size-label);
+  font-weight: var(--theme-font-weight-bold);
 }
 
 .nie-profile-meta__label,
 .nie-topbar-label {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--theme-font-size-caption);
+  font-weight: var(--theme-font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .nie-profile-meta__value {
-  margin: 0.32rem 0 0;
+  margin: var(--theme-space-1) 0 0;
   color: var(--color-text);
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: var(--theme-font-size-label);
+  font-weight: var(--theme-font-weight-semibold);
 }
 
 .nie-topbar-section-header {
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--theme-space-2);
 }
 
 .nie-topbar-theme-grid,
 .nie-topbar-palette-grid,
 .nie-topbar-actions {
   display: grid;
-  gap: 0.55rem;
+  gap: var(--theme-space-2);
 }
 
 .nie-topbar-theme-grid {
@@ -551,6 +538,10 @@ onUnmounted(() => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.nie-topbar-theme-grid--compact {
+  gap: var(--theme-space-2);
+}
+
 .nie-topbar-palette-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -559,25 +550,84 @@ onUnmounted(() => {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.nie-topbar-palette-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
+  margin-top: var(--theme-space-2);
+}
+
+.nie-topbar-palette-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--theme-radius-pill);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nie-topbar-palette-dot:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.nie-topbar-palette-dot--active {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 60%,
+    var(--color-border)
+  );
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.nie-topbar-palette-dot__swatch {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid color-mix(in srgb, var(--theme-color-static-white) 85%, transparent);
+  border-radius: var(--theme-radius-pill);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-color-neutral-900) 10%, transparent);
+}
+
 .nie-topbar-choice {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: var(--theme-space-2);
   width: 100%;
   min-height: 2.75rem;
-  padding: 0.7rem 0.85rem;
+  padding: var(--theme-space-3);
   border: 1px solid var(--color-border);
-  border-radius: 0.95rem;
+  border-radius: var(--theme-radius-control);
   background: var(--color-surface);
   color: var(--color-text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--theme-font-size-label);
+  font-weight: var(--theme-font-weight-semibold);
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
+}
+
+.nie-topbar-choice--compact {
+  min-height: 2.15rem;
+  padding: var(--theme-space-2) var(--theme-space-3);
+  border-radius: var(--theme-radius-control);
+  font-size: var(--theme-font-size-label);
 }
 
 .nie-topbar-choice:hover {
@@ -608,14 +658,14 @@ onUnmounted(() => {
 
 .nie-topbar-choice__title {
   color: var(--color-text);
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: var(--theme-font-size-label);
+  font-weight: var(--theme-font-weight-bold);
 }
 
 .nie-topbar-choice__hint {
-  margin-top: 0.18rem;
+  margin-top: var(--theme-space-1);
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--theme-font-size-caption);
   line-height: 1.35;
 }
 
@@ -623,10 +673,10 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  padding: 0.28rem 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 700;
+  border-radius: var(--theme-radius-pill);
+  padding: var(--theme-space-1) var(--theme-space-3);
+  font-size: var(--theme-font-size-caption);
+  font-weight: var(--theme-font-weight-bold);
   white-space: nowrap;
 }
 
@@ -651,15 +701,15 @@ onUnmounted(() => {
 }
 
 .nie-topbar-choice--danger {
-  color: #dc2626;
+  color: var(--theme-color-danger-solid);
 }
 
 .nie-topbar-swatch {
   width: 0.9rem;
   height: 0.9rem;
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  border-radius: 999px;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  border: 2px solid color-mix(in srgb, var(--theme-color-static-white) 75%, transparent);
+  border-radius: var(--theme-radius-pill);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-color-neutral-900) 8%, transparent);
 }
 
 .nie-mobile-sheet-shell {
@@ -676,7 +726,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(15, 23, 42, 0.56);
+  background: var(--theme-color-surface-overlay);
 }
 
 .nie-mobile-sheet {
@@ -692,16 +742,14 @@ onUnmounted(() => {
   border-top-left-radius: 1.6rem;
   border-top-right-radius: 1.6rem;
   background: color-mix(in srgb, var(--color-surface) 98%, transparent);
-  box-shadow:
-    0 30px 60px -30px rgba(15, 23, 42, 0.42),
-    0 18px 30px -24px rgba(15, 23, 42, 0.28);
+  box-shadow: var(--theme-shadow-float);
 }
 
 .nie-mobile-sheet-grip {
   width: 3.4rem;
   height: 0.32rem;
-  margin: 0.6rem auto 0.35rem;
-  border-radius: 999px;
+  margin: var(--theme-space-2-5) auto var(--theme-space-1-5);
+  border-radius: var(--theme-radius-pill);
   background: color-mix(
     in srgb,
     var(--color-border) 78%,
@@ -713,16 +761,16 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding-top: 0.3rem;
-  padding-bottom: 1rem;
+  padding-top: var(--theme-space-1);
+  padding-bottom: var(--theme-space-4);
   background: inherit;
 }
 
 .nie-mobile-sheet-title {
   margin: 0;
   color: var(--color-text);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: var(--theme-font-size-body);
+  font-weight: var(--theme-font-weight-bold);
 }
 
 .nie-mobile-sheet-close {
@@ -732,51 +780,9 @@ onUnmounted(() => {
   width: 2.25rem;
   height: 2.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--theme-radius-pill);
   background: var(--color-surface);
   color: var(--color-text-muted);
-}
-
-.nie-mobile-palette-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
-}
-
-.nie-mobile-palette-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.65rem;
-  height: 2.65rem;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.nie-mobile-palette-button--active {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 60%,
-    var(--color-border)
-  );
-  background: var(--color-sidebar-active);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 12%, transparent);
-}
-
-.nie-mobile-palette-swatch {
-  width: 1.15rem;
-  height: 1.15rem;
-  border: 2px solid rgba(255, 255, 255, 0.88);
-  border-radius: 999px;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.1);
 }
 
 .nie-mobile-sheet-enter-active,

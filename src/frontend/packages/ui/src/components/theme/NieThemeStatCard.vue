@@ -21,17 +21,17 @@ const props = withDefaults(defineProps<Props>(), {
 
 const toneClasses: Record<ThemeStatTone, string> = {
   brand: "bg-primary-50 text-primary-700 dark:bg-primary-900/25 dark:text-primary-300",
-  info: "bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300",
+  info: "bg-info-50 text-info-700 dark:bg-info-950/30 dark:text-info-300",
   success:
-    "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300",
+    "bg-success-50 text-success-700 dark:bg-success-950/30 dark:text-success-300",
   warning:
-    "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300",
-  danger: "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300",
+    "bg-warning-50 text-warning-700 dark:bg-warning-950/30 dark:text-warning-300",
+  danger: "bg-danger-50 text-danger-700 dark:bg-danger-950/30 dark:text-danger-300",
 };
 
 const cardClasses = computed(() =>
   cn(
-    "rounded-3xl border border-secondary-200 bg-white/95 p-5 shadow-sm transition-all dark:border-secondary-700 dark:bg-secondary-900/90",
+    "rounded-3xl border border-secondary-200 bg-white/95 p-5 shadow-[var(--theme-shadow-soft)] transition-all dark:border-secondary-700 dark:bg-secondary-900/90",
     props.class,
   ),
 );
@@ -42,12 +42,12 @@ const cardClasses = computed(() =>
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
         <p
-          class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500 dark:text-secondary-400"
+          class="text-xs font-semibold uppercase tracking-wide text-secondary-500 dark:text-secondary-400"
         >
           {{ label }}
         </p>
         <p
-          class="mt-3 text-3xl font-black tracking-tight text-secondary-900 dark:text-secondary-50"
+          class="mt-3 text-3xl font-bold tracking-tight text-secondary-900 dark:text-secondary-50"
         >
           {{ value }}
         </p>
@@ -64,7 +64,7 @@ const cardClasses = computed(() =>
         class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
         :class="toneClasses[tone]"
       >
-        <span class="material-symbols-outlined text-[22px]">{{ icon }}</span>
+        <span class="material-symbols-outlined text-page-title">{{ icon }}</span>
       </div>
     </div>
   </article>

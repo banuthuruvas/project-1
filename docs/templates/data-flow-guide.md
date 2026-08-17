@@ -6,7 +6,7 @@
 
 ## Purpose
 
-The data flow document traces how data moves through the system — from user input, through API layers, services, database, and back. AI agents use this to understand the full request lifecycle and generate correct service/controller code.
+The data flow document traces how data moves through the system â€” from user input, through API layers, services, database, and back. AI agents use this to understand the full request lifecycle and generate correct service/controller code.
 
 ## When to Create
 
@@ -31,7 +31,7 @@ Every project shares this baseline. Include it in your `docs/data-flow.md`:
 
 \`\`\`mermaid
 flowchart TD
-User[👤 User Browser] -->|HTTP Request| Nginx[nginx Reverse Proxy]
+User[ðŸ‘¤ User Browser] -->|HTTP Request| Nginx[nginx Reverse Proxy]
 Nginx -->|/api/_| API[Main API :5002]
 Nginx -->|/auth/_| Auth[Auth API :5001]
 
@@ -49,7 +49,7 @@ Nginx -->|/auth/_| Auth[Auth API :5001]
     end
 
     subgraph DataLayer["Data Layer"]
-        DataAccess --> DbContext[ApplicationDbContext]
+        DataAccess --> DbContext[MainDbContext]
         DbContext --> PG[(PostgreSQL)]
     end
 
@@ -177,17 +177,17 @@ B -->|Timeout| E
 ### Step 5: Document Background Job Flows
 
 ```markdown
-## Background Jobs (Hangfire)
+## Background Jobs (TickerQ)
 
 \`\`\`mermaid
 flowchart TD
 subgraph Triggers["Job Triggers"]
-CRON[⏰ Scheduled CRON]
-EVENT[📢 Event-triggered]
-MANUAL[👤 Manual trigger]
+CRON[â° Scheduled CRON]
+EVENT[ðŸ“¢ Event-triggered]
+MANUAL[ðŸ‘¤ Manual trigger]
 end
 
-    subgraph Hangfire["Hangfire Pipeline"]
+    subgraph TickerQ["TickerQ Pipeline"]
         CRON --> Q[Job Queue]
         EVENT --> Q
         MANUAL --> Q
@@ -206,26 +206,25 @@ end
     J --> FAIL{Failed?}
     FAIL -->|Yes| RETRY[Auto-retry with backoff]
     RETRY --> Q
-    FAIL -->|No| DONE[✅ Complete]
+    FAIL -->|No| DONE[âœ… Complete]
 
 \`\`\`
 ```
 
 ## Tips
 
-1. **Start with the happy path** — Document the normal flow first, then add error branches
-2. **One diagram per feature** — Don't cram everything into one massive diagram
-3. **Show data transformations** — Where does a DTO become an Entity? Where does raw data become a response?
-4. **Include caching** — If Valkey is used, show cache check/store steps
-5. **Document async flows** — Background jobs, webhooks, and event-driven patterns need separate diagrams
+1. **Start with the happy path** â€” Document the normal flow first, then add error branches
+2. **One diagram per feature** â€” Don't cram everything into one massive diagram
+3. **Show data transformations** â€” Where does a DTO become an Entity? Where does raw data become a response?
+4. **Include caching** â€” If Valkey is used, show cache check/store steps
+5. **Document async flows** â€” Background jobs, webhooks, and event-driven patterns need separate diagrams
 
 ## Review Checklist
 
 - [ ] Standard request lifecycle documented
 - [ ] Each major feature has a data flow diagram
-- [ ] Data transformation points are mapped (DTO ↔ Entity)
+- [ ] Data transformation points are mapped (DTO â†” Entity)
 - [ ] External integration flows include error/retry paths
 - [ ] Background job flows documented (if applicable)
 - [ ] All diagrams use Mermaid.js syntax
 - [ ] Cache strategies visible in diagrams
-

@@ -150,7 +150,7 @@ const response = await apiClient.post('/api/Entity', {
 data: {
 name: 'Test Entity',
 description: 'Created by automated test',
-categoryId: 1,
+categoryId: '019fc37a-71b9-7858-86f2-9fea26d10e34',
 },
 });
 expect(response.ok()).toBeTruthy();

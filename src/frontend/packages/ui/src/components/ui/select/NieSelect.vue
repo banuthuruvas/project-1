@@ -34,6 +34,7 @@ const emit = defineEmits<{
 const selectId = computed(
   () => props.id || `select-${Math.random().toString(36).slice(2, 9)}`,
 );
+const errorId = computed(() => `${selectId.value}-error`);
 
 const isOpen = ref(false);
 const search = ref("");
@@ -63,7 +64,11 @@ const filteredOptions = computed(() => {
 
 function toggle() {
   if (props.disabled) return;
-  isOpen.value ? close() : open();
+  if (isOpen.value) {
+    close();
+  } else {
+    open();
+  }
 }
 
 function open() {
@@ -155,11 +160,11 @@ onUnmounted(() =>
 
 const triggerClasses = computed(() =>
   cn(
-    "flex items-center justify-between w-full rounded-xl border px-3 py-2.5 text-sm transition-colors duration-200 cursor-pointer",
+    "nie-select-trigger flex min-h-11 items-center justify-between w-full rounded-[var(--theme-radius-control)] border px-3 py-2 text-sm transition-colors duration-200 cursor-pointer",
     "focus:outline-none focus:ring-2 focus:ring-offset-0",
     "disabled:cursor-not-allowed disabled:opacity-50",
     props.error
-      ? "border-red-300 text-red-900 focus:border-red-500 focus:ring-red-500 dark:border-red-600 dark:text-red-400"
+      ? "border-danger-300 text-danger-900 focus:border-danger-500 focus:ring-danger-500 dark:border-danger-600 dark:text-danger-400"
       : "border-secondary-300 text-secondary-900 focus:border-primary-500 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-800 dark:text-secondary-100",
     props.class,
   ),
@@ -176,6 +181,7 @@ const triggerClasses = computed(() =>
       {{ label }}
     </label>
     <button
+      data-nie-control="select"
       :id="selectId"
       type="button"
       :class="triggerClasses"
@@ -183,6 +189,8 @@ const triggerClasses = computed(() =>
       role="combobox"
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
+      :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="error ? errorId : undefined"
       @click="toggle"
       @keydown="onKeydown"
     >
@@ -215,7 +223,7 @@ const triggerClasses = computed(() =>
     >
       <div
         v-if="isOpen"
-        class="absolute z-50 mt-1 w-full rounded-xl border border-secondary-200 bg-white shadow-lg dark:border-secondary-600 dark:bg-secondary-800 overflow-hidden"
+        class="absolute z-50 mt-1 w-full rounded-[var(--theme-radius-panel)] border border-secondary-200 bg-white shadow-[var(--theme-shadow-float)] dark:border-secondary-600 dark:bg-secondary-800 overflow-hidden"
       >
         <!-- Search -->
         <div
@@ -228,6 +236,7 @@ const triggerClasses = computed(() =>
             type="text"
             class="w-full rounded-lg border border-secondary-200 bg-secondary-50 px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-700 dark:text-secondary-100"
             placeholder="Search..."
+            :aria-label="`Search ${label || placeholder}`"
             @keydown="onKeydown"
           />
         </div>
@@ -279,9 +288,24 @@ const triggerClasses = computed(() =>
       </div>
     </Transition>
 
-    <p v-if="error" class="text-sm text-red-600 dark:text-red-400">
+    <p
+      v-if="error"
+      :id="errorId"
+      role="alert"
+      class="text-sm text-danger-600 dark:text-danger-400"
+    >
       {{ error }}
     </p>
   </div>
 </template>
 
+<style scoped>
+.nie-select-trigger {
+  box-sizing: border-box;
+  min-height: var(--theme-control-height-md);
+  padding-block: var(--theme-space-2);
+  border-radius: var(--theme-radius-control);
+  font-size: var(--theme-font-size-body);
+  line-height: 1.25rem;
+}
+</style>

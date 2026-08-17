@@ -1,296 +1,64 @@
-# API Reference
+# API reference
 
-This document provides detailed information about the NieTemplate API endpoints.
+The generated OpenAPI documents are the authoritative endpoint references for the two backend hosts.
 
-## Base URL
+| Host | Local base URL | OpenAPI document |
+| --- | --- | --- |
+| Main API | `http://localhost:5002` | `http://localhost:5002/openapi/v1.json` |
+| Auth API | `http://localhost:5001` | `http://localhost:5001/openapi/v1.json` |
 
-- **Development**: `https://localhost:5001/api/v1`
-- **Production**: `https://api.yourcompany.com/api/v1`
+Both hosts also expose unauthenticated liveness and readiness endpoints:
 
-## Authentication
+- `/health/live`
+- `/health/ready`
 
-All API endpoints (except health checks) require session-based authentication.
+## Routing
 
-### Headers
+Most Main API controllers inherit the conventional route `api/[controller]/[action]`.
+Resource-oriented controllers such as Chat, Report, and Workflow declare explicit routes.
+Use the generated OpenAPI document instead of constructing a route from convention alone.
 
-| Header         | Required | Description                              |
-| -------------- | -------- | ---------------------------------------- |
-| `X-Session-Id` | Yes      | Session token obtained from Auth service |
-| `Content-Type` | Yes      | `application/json` for JSON payloads     |
+The Procurement reference implementation includes Vendor, Catalog Item, and Purchase Order
+controllers. Its identifiers are UUIDv7 values represented as JSON strings. Server-backed data
+tables use bounded `Search` and `GetFilterOptions` POST endpoints so paging, sorting, searching,
+and facet selection execute in the database.
 
-### Error Responses
+## Authentication and authorization
 
-| Status Code               | Description                |
-| ------------------------- | -------------------------- |
-| 401 Unauthorized          | Invalid or expired session |
-| 403 Forbidden             | Insufficient permissions   |
-| 404 Not Found             | Resource not found         |
-| 500 Internal Server Error | Server error               |
+The Auth API issues the application session. The Main API validates that session and requires an
+access-function attribute on protected controller actions. Screen access in Vue uses the matching
+access-function code; a visible route never substitutes for backend authorization.
 
----
+Browser requests normally send the session through the template's configured cookies. API clients
+must follow the authentication contract described in the OpenAPI document and
+[`security-model.md`](security-model.md).
 
-## Health Check
+## Validation and errors
 
-### GET /health
+Request validation uses FluentValidation. Validation failures and handled application failures use
+RFC 7807 problem details. Consumers should use the HTTP status and problem `errors` collection,
+without depending on exception text.
 
-Check the health status of the API and its dependencies.
+Expected status classes include:
 
-**Authentication Required**: No
+| Status | Meaning |
+| --- | --- |
+| `400` | Request validation failed |
+| `401` | Authentication is missing or invalid |
+| `403` | The session lacks the required access function |
+| `404` | The resource or route does not exist |
+| `409` | The request conflicts with resource state |
+| `429` | A configured rate limit was exceeded |
+| `500` | An unexpected server failure occurred |
 
-**Response**
+## Files and identifiers
 
-```json
-{
-  "status": "Healthy",
-  "entries": {
-    "postgresql": {
-      "status": "Healthy",
-      "duration": "00:00:00.0234567"
-    },
-    "valkey": {
-      "status": "Healthy",
-      "duration": "00:00:00.0012345"
-    }
-  }
-}
-```
+Document upload endpoints accept `multipart/form-data`. Persisted entity identifiers and foreign
+keys use UUIDv7; `int` and `bigint` are reserved for quantities, ordering, counters, sizes, and
+other non-identity values.
 
----
+## Keeping this reference accurate
 
-## Code Controller
-
-Manages lookup/reference data codes.
-
-### GET /api/v1/code/getall
-
-Retrieves all codes.
-
-**Response**
-
-```json
-[
-  {
-    "id": "1",
-    "type": "STATUS",
-    "code": "ACTIVE",
-    "description": "Active status",
-    "sortOrder": 1
-  }
-]
-```
-
-### GET /api/v1/code/getbytype/{type}
-
-Retrieves codes by type.
-
-**Parameters**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| type | string | Yes | Code type (e.g., "STATUS", "CATEGORY") |
-
-**Response**
-
-```json
-[
-  {
-    "id": "1",
-    "type": "STATUS",
-    "code": "ACTIVE",
-    "description": "Active status",
-    "sortOrder": 1
-  }
-]
-```
-
----
-
-## Sample Model Controller
-
-Example CRUD operations for the SampleModel entity.
-
-### GET /api/v1/samplemodel/getall
-
-Retrieves all sample models.
-
-**Response**
-
-```json
-[
-  {
-    "id": 1,
-    "mandatoryField": "Test",
-    "nonMandatoryField": null,
-    "sampleEnum": "Option1",
-    "childModels": [
-      {
-        "id": 1,
-        "name": "Child 1"
-      }
-    ]
-  }
-]
-```
-
-### GET /api/v1/samplemodel/getbyid/{id}
-
-Retrieves a sample model by ID.
-
-**Parameters**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | integer | Yes | Sample model ID |
-
-**Response**
-
-```json
-{
-  "id": 1,
-  "mandatoryField": "Test",
-  "nonMandatoryField": null,
-  "sampleEnum": "Option1",
-  "childModels": []
-}
-```
-
-### POST /api/v1/samplemodel/create
-
-Creates a new sample model.
-
-**Request Body**
-
-```json
-{
-  "mandatoryField": "New Sample",
-  "nonMandatoryField": "Optional value",
-  "sampleEnum": "Option1"
-}
-```
-
-**Response**
-
-```json
-{
-  "id": 1,
-  "mandatoryField": "New Sample",
-  "nonMandatoryField": "Optional value",
-  "sampleEnum": "Option1"
-}
-```
-
-### PUT /api/v1/samplemodel/update
-
-Updates an existing sample model.
-
-**Request Body**
-
-```json
-{
-  "id": 1,
-  "mandatoryField": "Updated Sample",
-  "nonMandatoryField": "Updated value",
-  "sampleEnum": "Option2"
-}
-```
-
-**Response**: 204 No Content
-
-### DELETE /api/v1/samplemodel/delete/{id}
-
-Deletes a sample model.
-
-**Parameters**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | integer | Yes | Sample model ID |
-
-**Response**: 204 No Content
-
----
-
-## Document Controller
-
-Manages file uploads and downloads.
-
-### GET /api/v1/document/downloadfile/{id}
-
-Downloads a document by ID.
-
-**Parameters**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | integer | Yes | Document ID |
-
-**Response**: File stream with appropriate content type
-
-### POST /api/v1/document/uploadfile
-
-Uploads a new document.
-
-**Request**: `multipart/form-data`
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| file | file | Yes | File to upload |
-| sampleModelId | integer | No | Associated sample model ID |
-
-**Response**
-
-```json
-{
-  "id": 1,
-  "filePath": "/2024-01/abc123.pdf",
-  "userFileName": "document.pdf",
-  "fileSize": 12345
-}
-```
-
-### DELETE /api/v1/document/deletefile/{id}
-
-Deletes a document.
-
-**Parameters**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | integer | Yes | Document ID |
-
-**Response**: 204 No Content
-
----
-
-## Error Response Format
-
-All API errors follow this format:
-
-```json
-{
-  "statusCode": 400,
-  "message": "Error message description",
-  "details": "Additional details (development only)"
-}
-```
-
----
-
-## Rate Limiting
-
-Currently, no rate limiting is implemented. For production deployments, consider adding:
-
-- Azure API Management
-- YARP reverse proxy with rate limiting
-- Custom middleware
-
----
-
-## Versioning
-
-The API uses URL-based versioning:
-
-- Current version: `v1`
-- Version header: `X-Api-Version` (alternative)
-
-Example:
-
-```
-GET /api/v1/samplemodel/getall
-GET /api/v2/samplemodel/getall  (future)
-```
-
+Treat controller attributes, DTOs, validators, and the generated OpenAPI documents as the executable
+contract. Update focused examples here when a cross-cutting convention changes; do not duplicate the
+complete generated operation list in Markdown.

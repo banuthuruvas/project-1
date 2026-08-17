@@ -1,161 +1,202 @@
 pipeline {
     agent any
-    triggers { githubPush() }
+
     options {
         disableConcurrentBuilds()
         timestamps()
+        timeout(time: 120, unit: 'MINUTES')
+    }
+
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch or ref to release')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'stg', 'prd'], description: 'Target AWS environment')
+        string(name: 'SOURCE_BUCKET', defaultValue: '', description: 'CodePipeline S3 source bucket')
+        string(name: 'SOURCE_OBJECT_KEY', defaultValue: '', description: 'Optional source object key override')
+        string(name: 'PIPELINE_NAME', defaultValue: '', description: 'Optional CodePipeline name override')
+        string(name: 'AWS_PROFILE', defaultValue: '', description: 'Optional AWS CLI profile on the Jenkins agent')
     }
 
     environment {
-        // ── Customise these per project ──────────────────────────────
-        APP_NAME        = "nietemplate"          // Docker image prefix
-        BUILD_ENV       = "staging"              // staging | production
-        DOCKER_REGISTRY = "10.240.229.41"        // Registry IP
-        HTTPS_PROXY     = "http://10.240.229.233:3128"
-        GIT_REPO_URL    = "https://niegithub.nie.edu.sg/NIE/nie-template.git"
-        GIT_BRANCH      = "*/main"
-        GIT_CREDENTIAL  = "aygit-classic"        // Jenkins credential ID
+        APP_NAME = 'application'
+        AWS_REGION = 'ap-southeast-1'
+        GIT_REPO_URL = 'https://niegithub.nie.edu.sg/NIE/nie-template.git'
+        GIT_CREDENTIAL = 'aygit-classic'
     }
 
     stages {
-        // ── 1  Clone ─────────────────────────────────────────────────
-        stage('Git clone') {
+        stage('Checkout') {
             steps {
                 script {
                     checkout([
                         $class: 'GitSCM',
-                        branches: [[name: env.GIT_BRANCH]],
-                        doGenerateSubmoduleConfigurations: false,
+                        branches: [ [name: params.BRANCH_NAME] ],
                         extensions: [
-                            [$class: 'CloneOption',
-                             depth: 1,
-                             shallow: true,
-                             noTags: true,
-                             reference: '',
-                             honorRefspec: false]
+                            [$class: 'CloneOption', depth: 0, shallow: false, noTags: false]
                         ],
-                        submoduleCfg: [],
-                        userRemoteConfigs: [[
+                        userRemoteConfigs: [ [
                             url: env.GIT_REPO_URL,
                             credentialsId: env.GIT_CREDENTIAL
-                        ]]
+                        ] ]
                     ])
-                    env.SHORT_COMMIT_ID = sh(
-                        script: 'git rev-parse --short HEAD',
+                    env.SOURCE_COMMIT = sh(
+                        script: 'git rev-parse HEAD',
                         returnStdout: true
                     ).trim()
-                    echo "Checked out commit: ${SHORT_COMMIT_ID}"
+                    echo "Checked out immutable source commit: ${env.SOURCE_COMMIT}"
                 }
             }
         }
 
-        // ── 2  Build & Push Docker images ────────────────────────────
-        // Validate template release metadata before building deployable artifacts
-        stage('Validate Template Release Metadata') {
+        stage('Validate Deployment Identity') {
             steps {
-                sh 'python3 tools/template-versioning/release.py validate'
+                sh '''
+                    set -eu
+                    test -f "deploy/helm/$APP_NAME/Chart.yaml"
+                    if [ "$APP_NAME" = "application" ]; then
+                        test -f "deploy/pipeline/Start-ApplicationRelease.ps1"
+                    else
+                        test -f "deploy/pipeline/Start-${APP_NAME}Release.ps1"
+                        if [ -f "deploy/pipeline/Start-ApplicationRelease.ps1" ]; then
+                            echo "Legacy generic release script must be reconciled before deployment." >&2
+                            exit 1
+                        fi
+                        if [ -d "deploy/helm/application" ] &&
+                           find "deploy/helm/application" -type f -print -quit | grep -q .; then
+                            echo "Legacy generic Helm chart must be reconciled before deployment." >&2
+                            exit 1
+                        fi
+                    fi
+                '''
             }
         }
 
-        // Build and push Docker images
-        stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    def registryUrl = "http://${env.DOCKER_REGISTRY}"
-                    docker.withRegistry(registryUrl) {
-                        def authApiImage = docker.build(
-                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-auth-api:${SHORT_COMMIT_ID}",
-                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.auth ."
-                        )
-                        authApiImage.push()
-
-                        def mainApiImage = docker.build(
-                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-main-api:${SHORT_COMMIT_ID}",
-                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.api ."
-                        )
-                        mainApiImage.push()
-
-                        def uiImage = docker.build(
-                            "${env.DOCKER_REGISTRY}/${env.APP_NAME}-ui:${SHORT_COMMIT_ID}",
-                            "--build-arg BUILD_ENV=${env.BUILD_ENV} --build-arg https_proxy=${env.HTTPS_PROXY} -f build/Dockerfile.ui ."
-                        )
-                        uiImage.push()
+        stage('Standard Quality Gates') {
+            parallel {
+                stage('Frontend') {
+                    steps {
+                        sh 'corepack pnpm --dir src/frontend install --frozen-lockfile'
+                        sh 'corepack pnpm --dir src/frontend audit --prod'
+                        sh 'corepack pnpm --dir src/frontend lint'
+                        sh 'corepack pnpm --dir src/frontend type-check'
+                        sh 'corepack pnpm --dir src/frontend --filter main test'
+                        sh 'corepack pnpm --dir src/frontend build'
+                    }
+                }
+                stage('Backend') {
+                    steps {
+                        sh 'dotnet restore src/backend/Backend.sln'
+                        sh 'dotnet package list --project src/backend/Backend.sln --vulnerable --include-transitive --no-restore'
+                        sh 'dotnet format src/backend/Backend.sln --verify-no-changes --severity warn --no-restore'
+                        sh 'dotnet build src/backend/Backend.sln -c Release -warnaserror --no-restore --nologo'
+                        sh 'dotnet test --solution src/backend/Backend.sln -c Release --no-build --no-restore'
                     }
                 }
             }
         }
 
-        // ── 3  Deploy ────────────────────────────────────────────────
-        stage('Deploy') {
+        stage('Package Exact Source') {
             steps {
                 script {
-                    // TODO: Load these from Jenkins credentials or Vault
-                    def serverIpAddress  = "CHANGE_ME"
-                    def serverPassword   = "CHANGE_ME"
-                    def serverAppFolder  = "/opt/data/${env.APP_NAME}"
-                    def serverUser       = "appadmin"
-                    def dockerRegistryUrl = env.DOCKER_REGISTRY
+                    if (!params.SOURCE_BUCKET?.trim()) {
+                        error('SOURCE_BUCKET is required.')
+                    }
 
-                    def remote = [:]
-                    remote.name          = "${env.APP_NAME}-${env.BUILD_ENV}-server"
-                    remote.host          = serverIpAddress
-                    remote.user          = serverUser
-                    remote.allowAnyHosts = true
-                    remote.password      = serverPassword
+                    env.RELEASE_SOURCE_BUCKET = params.SOURCE_BUCKET.trim()
+                    env.RELEASE_SOURCE_OBJECT_KEY = params.SOURCE_OBJECT_KEY?.trim()
+                        ? params.SOURCE_OBJECT_KEY.trim()
+                        : "${env.APP_NAME}/${params.ENVIRONMENT}/source.zip"
+                    env.RELEASE_PIPELINE_NAME = params.PIPELINE_NAME?.trim()
+                        ? params.PIPELINE_NAME.trim()
+                        : "${env.APP_NAME}-${params.ENVIRONMENT}-pipeline"
+                    env.RELEASE_AWS_PROFILE = params.AWS_PROFILE?.trim() ?: ''
 
-                    sshCommand remote: remote, command: """
-                        sudo su - <<EOF
-                        cd ${serverAppFolder}
-                        export COMMIT_ID=${SHORT_COMMIT_ID}
-                        export DOCKER_REGISTRY_URL=\$(echo "${dockerRegistryUrl}" | cut -d':' -f1)
-
-                        if [ "${env.BUILD_ENV}" = "production" ]; then
-                            export PROXY_VALUE='http://155.69.74.233:3128'
-                            export NO_PROXY_VALUE='localhost,127.0.0.1,::1,*.nie.edu.sg,172.18.0.0/16,172.17.0.0/16,155.69.0.0/16'
-                        fi
-
-                        docker compose up -d
-EOF
-                    """
+                    sh '''
+                        set -eu
+                        rm -f source.zip
+                        git archive --format=zip --output=source.zip "$SOURCE_COMMIT"
+                        test -s source.zip
+                    '''
                 }
             }
         }
 
-        // ── 4  Run database migrations ───────────────────────────────
-        stage('Run Migrations') {
+        stage('Start AWS Release') {
             steps {
                 script {
-                    def serverIpAddress  = "CHANGE_ME"
-                    def serverPassword   = "CHANGE_ME"
-                    def serverAppFolder  = "/opt/data/${env.APP_NAME}"
-                    def serverUser       = "appadmin"
+                    sh '''
+                        set -eu
+                        if [ -n "$RELEASE_AWS_PROFILE" ]; then
+                            aws s3 cp source.zip \
+                                "s3://$RELEASE_SOURCE_BUCKET/$RELEASE_SOURCE_OBJECT_KEY" \
+                                --region "$AWS_REGION" --profile "$RELEASE_AWS_PROFILE" --no-cli-pager
+                        else
+                            aws s3 cp source.zip \
+                                "s3://$RELEASE_SOURCE_BUCKET/$RELEASE_SOURCE_OBJECT_KEY" \
+                                --region "$AWS_REGION" --no-cli-pager
+                        fi
+                    '''
 
-                    def remote = [:]
-                    remote.name          = "${env.APP_NAME}-${env.BUILD_ENV}-server"
-                    remote.host          = serverIpAddress
-                    remote.user          = serverUser
-                    remote.allowAnyHosts = true
-                    remote.password      = serverPassword
-
-                    // EF Core migrations are applied on startup via context.Database.Migrate()
-                    // This stage waits for the API container to become healthy
-                    sshCommand remote: remote, command: """
-                        sudo su - <<EOF
-                        cd ${serverAppFolder}
-                        echo 'Waiting for API to start and apply migrations...'
-                        for i in \$(seq 1 30); do
-                            if docker exec ${env.APP_NAME}-api-service wget -q -O- http://localhost:8080/health/live 2>/dev/null | grep -q ok; then
-                                echo 'API is healthy — migrations applied successfully.'
-                                exit 0
+                    env.pipelineExecutionId = sh(
+                        script: '''
+                            set -eu
+                            if [ -n "$RELEASE_AWS_PROFILE" ]; then
+                                aws codepipeline start-pipeline-execution \
+                                    --name "$RELEASE_PIPELINE_NAME" \
+                                    --region "$AWS_REGION" --profile "$RELEASE_AWS_PROFILE" \
+                                    --query pipelineExecutionId --output text --no-cli-pager
+                            else
+                                aws codepipeline start-pipeline-execution \
+                                    --name "$RELEASE_PIPELINE_NAME" \
+                                    --region "$AWS_REGION" \
+                                    --query pipelineExecutionId --output text --no-cli-pager
                             fi
-                            sleep 2
-                        done
-                        echo 'WARNING: API health check timed out after 60s.'
-                        exit 1
-EOF
-                    """
+                        ''',
+                        returnStdout: true
+                    ).trim()
+                    echo "Started CodePipeline execution: ${env.pipelineExecutionId}"
                 }
             }
+        }
+
+        stage('Wait for AWS Release') {
+            steps {
+                script {
+                    timeout(time: 90, unit: 'MINUTES') {
+                        waitUntil(initialRecurrencePeriod: 15000, quiet: true) {
+                            def status = sh(
+                                script: '''
+                                    set -eu
+                                    if [ -n "$RELEASE_AWS_PROFILE" ]; then
+                                        aws codepipeline get-pipeline-execution \
+                                            --pipeline-name "$RELEASE_PIPELINE_NAME" \
+                                            --pipeline-execution-id "$pipelineExecutionId" \
+                                            --region "$AWS_REGION" --profile "$RELEASE_AWS_PROFILE" \
+                                            --query pipelineExecution.status --output text --no-cli-pager
+                                    else
+                                        aws codepipeline get-pipeline-execution \
+                                            --pipeline-name "$RELEASE_PIPELINE_NAME" \
+                                            --pipeline-execution-id "$pipelineExecutionId" \
+                                            --region "$AWS_REGION" \
+                                            --query pipelineExecution.status --output text --no-cli-pager
+                                    fi
+                                ''',
+                                returnStdout: true
+                            ).trim()
+                            echo "CodePipeline status: ${status}"
+                            if (status in ['Failed', 'Stopped', 'Superseded']) {
+                                error("CodePipeline execution finished with status '${status}'.")
+                            }
+                            return status == 'Succeeded'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'rm -f source.zip'
         }
     }
 }

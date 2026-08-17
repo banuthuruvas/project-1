@@ -34,17 +34,17 @@ const icons = {
 };
 
 const variantClasses: Record<AlertVariant, string> = {
-  info: "bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200",
-  success: "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200",
-  warning: "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200",
-  danger: "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200",
+  info: "bg-info-50 text-info-800 dark:bg-info-900/20 dark:text-info-200",
+  success: "bg-success-50 text-success-800 dark:bg-success-900/20 dark:text-success-200",
+  warning: "bg-warning-50 text-warning-800 dark:bg-warning-900/20 dark:text-warning-200",
+  danger: "bg-danger-50 text-danger-800 dark:bg-danger-900/20 dark:text-danger-200",
 };
 
 const iconClasses: Record<AlertVariant, string> = {
-  info: "text-blue-500",
-  success: "text-green-500",
-  warning: "text-yellow-500",
-  danger: "text-red-500",
+  info: "text-info-500",
+  success: "text-success-500",
+  warning: "text-warning-500",
+  danger: "text-danger-500",
 };
 
 const alertClasses = computed(() =>

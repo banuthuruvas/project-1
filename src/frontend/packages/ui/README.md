@@ -1,4 +1,4 @@
-# @nietemplate/ui
+# @nie/ui
 
 Shared visual design system and reusable Vue components for NIE Template.
 
